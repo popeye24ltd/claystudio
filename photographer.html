@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Fotógrafo - CLAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css?v=17">
+    <style>
+        .tabs { display: flex; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+        .tab { cursor: pointer; color: var(--text-secondary); font-size: 1.2rem; transition: color 0.3s; }
+        .tab.active { color: var(--accent); font-weight: bold; border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: -11px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <nav class="navbar glass">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <i class="ph ph-aperture"></i> CLAY
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Inicio</a>
+        </div>
+        <div class="nav-actions">
+            <!-- Rellenado por app.js -->
+        </div>
+    </nav>
+
+    <div id="app-container" style="margin-top: 120px; padding: 20px; max-width: 900px; margin-left: auto; margin-right: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+            <h1 id="welcome-msg"><i class="ph ph-camera"></i> Panel de Fotógrafo</h1>
+            <button class="btn btn-outline" onclick="toggleFloatingChat()"><i class="ph ph-chat-circle"></i> Bandeja de Entrada</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('agenda')">Mi Agenda</div>
+            <div class="tab" onclick="switchTab('settings')">Configuración</div>
+        </div>
+
+        <!-- AGENDA TAB -->
+        <div id="tab-agenda" class="tab-content active">
+            <!-- Hydrated by JS -->
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="tab-settings" class="tab-content glass" style="padding: 30px;">
+            <h2 style="margin-bottom: 20px;">Apariencia</h2>
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 40px;">
+                <span>Modo Claro / Oscuro</span>
+                <button class="btn btn-outline" onclick="toggleTheme()"><i class="ph ph-moon"></i> Alternar Tema</button>
+            </div>
+
+            <h2 style="margin-bottom: 20px;">Seguridad</h2>
+            <form onsubmit="event.preventDefault(); doChangePassword();">
+                <div style="margin-bottom: 20px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 5px; display: block;">Nueva Contraseña</label>
+                    <input type="password" id="new-password" class="glass" required style="width: 100%; max-width: 300px; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=17"></script>
+    <script>
+        window.onload = () => {
+            initDB();
+            applyTheme();
+        };
+
+        window.addEventListener('authStateReady', () => {
+            updateNavbar();
+            
+            const user = getCurrentUser();
+            if (!user || (user.role !== 'photographer' && user.role !== 'admin')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const isAdmin = user.role === 'admin';
+            if (isAdmin) {
+                document.getElementById('welcome-msg').innerHTML = `<i class="ph ph-shield-star"></i> Modo Fotógrafo (Admin: ${user.name})`;
+            } else {
+                document.getElementById('welcome-msg').innerHTML = `<i class="ph ph-camera"></i> Panel de Fotógrafo: ${user.name}`;
+            }
+
+            if (db) {
+                let query = db.collection('bookings');
+                if (!isAdmin) {
+                    query = query.where('photographerName', '==', user.name);
+                }
+                query.onSnapshot(snapshot => {
+                    window.photoBookings = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    renderAgenda();
+                });
+            } else {
+                window.photoBookings = [];
+                renderAgenda();
+            }
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function renderAgenda() {
+            const bookings = window.photoBookings || [];
+            const pending = bookings.filter(b => b.status === 'Pendiente');
+            const accepted = bookings.filter(b => b.status === 'Aceptada');
+
+            const container = document.getElementById('tab-agenda');
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="color: var(--accent);">Nuevas Solicitudes</h3>
+                    </div>
+                    <div class="glass" style="padding: 15px;">
+                        <input type="text" id="client-select" placeholder="Nombre ID del cliente (para subir material)" class="glass" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                        <button class="btn btn-primary" onclick="document.getElementById('upload-photos').click()"><i class="ph ph-upload-simple"></i> Subir Material</button>
+                        <input type="file" id="upload-photos" multiple accept="image/*,video/mp4,video/quicktime,video/webm" style="display:none" onchange="handleUpload(event)">
+                        
+                        <div style="margin-top: 20px; border-top: 1px solid var(--glass-border); pt: 10px;">
+                            <input type="text" id="client-select-export" placeholder="Nombre ID del cliente" class="glass" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                            <button class="btn btn-outline" onclick="exportFavorites()"><i class="ph ph-download-simple"></i> Exportar Selección</button>
+                        </div>
+                    </div>
+                </div>
+                
+                ${pending.length === 0 ? '<p style="color: var(--text-secondary); margin-bottom: 30px;">No hay solicitudes nuevas.</p>' : 
+                    pending.map(b => `
+                        <div class="glass" style="padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <div>
+                                <h4>${b.clientName} - ${b.service}</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Desea agendar para el Día ${b.date} ${b.time ? 'a las ' + b.time : ''}.</p>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-primary" style="background: #22c55e; border: none;" onclick="acceptBooking('${b.id}')">Aceptar</button>
+                                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="rejectBooking('${b.id}')">Rechazar</button>
+                            </div>
+                        </div>
+                    `).join('')
+                }
+
+                <h3 style="margin-bottom: 15px; color: var(--accent); margin-top: 40px;">Agenda Confirmada</h3>
+                <div class="glass" style="padding: 20px;">
+                    ${accepted.length === 0 ? '<p style="color: var(--text-secondary);">Agenda libre.</p>' : 
+                        accepted.map(b => `
+                            <div style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); margin-bottom: 10px; flex-wrap: wrap;">
+                                <span>Día ${b.date} ${b.time ? 'a las ' + b.time : ''} - ${b.service} (${b.clientName})</span>
+                                <div style="display: flex; gap: 15px; align-items: center;">
+                                    <button class="btn btn-outline" style="padding: 5px 15px; font-size: 0.8rem;" onclick="openFloatingChat('${b.id}', '${b.clientName}')"><i class="ph ph-chat-circle"></i> Chat</button>
+                                    <span style="color: #22c55e;">Confirmado</span>
+                                </div>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+            `;
+        }
+
+        function acceptBooking(id) {
+            if (db) db.collection('bookings').doc(id).update({status: 'Aceptada'});
+            const b = window.photoBookings.find(x => x.id === id);
+            if(b) sendEmailNotification('booking_accepted', b.clientName, `¡Tu fotógrafo ha confirmado la cita para el Día ${b.date} a las ${b.time}!`);
+        }
+        function rejectBooking(id) {
+            if (db) db.collection('bookings').doc(id).update({status: 'Rechazada'});
+            const b = window.photoBookings.find(x => x.id === id);
+            if(b) sendEmailNotification('booking_accepted', b.clientName, `Lo sentimos, el fotógrafo no tiene disponibilidad para esa fecha.`);
+        }
+
+        async function handleUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const clientName = document.getElementById('client-select').value;
+            if(!clientName) {
+                alert("Debes escribir el ID del cliente primero.");
+                return;
+            }
+
+            const uploadBtn = event.target.parentElement.querySelector('button');
+            const originalText = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Subiendo a la Nube...';
+            uploadBtn.disabled = true;
+
+            let currentGallery = [];
+            try {
+                if (db) {
+                    const doc = await db.collection('galleries').doc(clientName).get();
+                    if(doc.exists) currentGallery = doc.data().photos || [];
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (storage && db) {
+                        const storageRef = storage.ref(`galleries/${clientName}/${Date.now()}_${file.name}`);
+                        await storageRef.put(file);
+                        const url = await storageRef.getDownloadURL();
+                        currentGallery.push(url);
+                    }
+                }
+
+                if (db) {
+                    await db.collection('galleries').doc(clientName).set({ photos: currentGallery });
+                    alert(`¡${files.length} archivo(s) subido(s) con éxito! El cliente ya puede verlos en su panel.`);
+                    sendEmailNotification('photos_ready', clientName, `Tus archivos de prueba ya están en la plataforma. Entra para seleccionar tus favoritos.`);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error subiendo a la nube.");
+            }
+            
+            uploadBtn.innerHTML = originalText;
+            uploadBtn.disabled = false;
+        }
+
+        async function exportFavorites() {
+            const clientName = document.getElementById('client-select-export').value;
+            if (!clientName) {
+                alert("Escribe el nombre del cliente primero.");
+                return;
+            }
+
+            let favs = [];
+            if (db) {
+                const doc = await db.collection('favorites').doc(clientName).get();
+                if(doc.exists) favs = doc.data().photos || [];
+            } else {
+                favs = JSON.parse(localStorage.getItem('lumina_favorites') || '[]');
+            }
+
+            if (favs.length === 0) {
+                alert("El cliente no ha seleccionado ninguna favorita aún.");
+                return;
+            }
+
+            let list = favs.map(f => {
+                try {
+                    let parts = decodeURIComponent(f).split('/');
+                    return parts[parts.length-1].split('?')[0];
+                } catch(e) {
+                    return f.substring(0, 30) + '...';
+                }
+            }).join('\n');
+
+            alert(`Archivos seleccionados por ${clientName}:\n\n${list}\n\n(Puedes copiar esto para filtrar en Lightroom)`);
+        }
+
+        function doChangePassword() {
+            const np = document.getElementById('new-password').value;
+            if(np.length < 3) return alert('La contraseña debe tener al menos 3 caracteres.');
+            changePassword(np);
+            document.getElementById('new-password').value = '';
+        }
+
+    </script>
+</body>
+</html>

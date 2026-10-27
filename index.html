@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLAY - Agencia de Fotografía Premium</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css?v=17">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <i class="ph ph-aperture splash-logo"></i>
+        <h1 class="splash-text">CLAY</h1>
+    </div>
+
+    <!-- Background Elements -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar glass">
+        <div class="logo" onclick="navigateTo('home')">
+            <i class="ph ph-aperture"></i> CLAY
+        </div>
+        <div class="nav-links">
+            <a href="#" onclick="navigateTo('home'); return false;">Inicio</a>
+            <a href="#" onclick="navigateTo('graphic-design'); return false;">Diseño Gráfico</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-outline" onclick="window.location.href='login.html'">Ingresar</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main id="app-container">
+        <!-- Views will be injected here by app.js -->
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=17"></script>
+</body>
+</html>

@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración Maestro - CLAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css?v=17">
+    <style>
+        .admin-nav-pills {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .admin-section-card {
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 30px;
+        }
+        .stat-badge {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .grid-responsive {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <nav class="navbar glass">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <i class="ph ph-aperture"></i> CLAY
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Inicio Web</a>
+            <a href="photographer.html"><i class="ph ph-camera"></i> Vista Fotógrafo</a>
+        </div>
+        <div class="nav-actions">
+            <!-- Rellenado por app.js -->
+        </div>
+    </nav>
+
+    <div id="app-container" style="margin-top: 110px; padding: 20px; max-width: 1250px; margin-left: auto; margin-right: auto;">
+        
+        <!-- ENCABEZADO PRINCIPAL -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1 id="welcome-msg" style="font-size: 2.2rem; display: flex; align-items: center; gap: 12px;">
+                    <i class="ph ph-shield-star" style="color: var(--accent);"></i> Panel de Control Maestro (Admin)
+                </h1>
+                <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.95rem;">
+                    Control total de la agencia: gestión de fotógrafos, agenda de citas, diseño gráfico y personalización de la web.
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="toggleAdminAssistant()" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: white; font-size: 0.9rem; padding: 8px 16px; border: none; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                    <i class="ph ph-robot"></i> Asistente & Guía
+                </button>
+                <a href="photographer.html" class="btn btn-outline" style="font-size: 0.9rem; padding: 8px 16px;">
+                    <i class="ph ph-camera"></i> Ir a Panel Fotógrafo
+                </a>
+                <a href="client.html" class="btn btn-outline" style="font-size: 0.9rem; padding: 8px 16px;">
+                    <i class="ph ph-user"></i> Vista Cliente
+                </a>
+            </div>
+        </div>
+
+        <!-- TABS PRINCIPALES DE ADMINISTRACIÓN -->
+        <div style="display: flex; gap: 12px; margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; flex-wrap: wrap;">
+            <button type="button" class="admin-tab-btn active" id="btn-tab-team" onclick="switchAdminTab('team')">
+                <i class="ph ph-camera"></i> Fotografía & Agenda
+            </button>
+            <button type="button" class="admin-tab-btn" id="btn-tab-designs" onclick="switchAdminTab('designs')">
+                <i class="ph ph-paint-brush-broad"></i> Portafolio de Diseño Gráfico
+            </button>
+            <button type="button" class="admin-tab-btn" id="btn-tab-website" onclick="switchAdminTab('website')">
+                <i class="ph ph-globe"></i> Portada Web & Galería
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 1: FOTOGRAFÍA, AGENDA Y GALERÍAS -->
+        <!-- ========================================== -->
+        <div id="tab-content-team">
+            
+            <!-- SUB-NAVEGACIÓN INTERNA DE FOTOGRAFÍA -->
+            <div class="admin-nav-pills">
+                <button type="button" class="admin-subtab-btn active" id="subbtn-photographers" onclick="switchTeamSubTab('photographers')">
+                    <i class="ph ph-users"></i> Fotógrafos de la Agencia (<span id="count-photographers">0</span>)
+                </button>
+                <button type="button" class="admin-subtab-btn" id="subbtn-agenda" onclick="switchTeamSubTab('agenda')">
+                    <i class="ph ph-calendar-check"></i> Agenda Global de Citas (<span id="count-bookings">0</span>)
+                </button>
+                <button type="button" class="admin-subtab-btn" id="subbtn-galleries" onclick="switchTeamSubTab('galleries')">
+                    <i class="ph ph-images"></i> Galerías & Entregas de Clientes (<span id="count-galleries">0</span>)
+                </button>
+            </div>
+
+            <!-- SUB-SECCIÓN A: PERSONAL / FOTÓGRAFOS -->
+            <div id="team-sub-photographers">
+                <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    
+                    <!-- LISTA DE FOTÓGRAFOS -->
+                    <div class="glass admin-section-card" style="flex: 2; min-width: 320px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="color: var(--accent); font-size: 1.4rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-users"></i> Equipo de Fotógrafos
+                            </h2>
+                            <span class="stat-badge" id="badge-photographers-count">0 miembros</span>
+                        </div>
+                        <div id="photographers-list" style="display: flex; flex-direction: column; gap: 15px;">
+                            <p style="color: var(--text-secondary);"><i class="ph ph-spinner ph-spin"></i> Cargando personal...</p>
+                        </div>
+                    </div>
+
+                    <!-- FORMULARIO CREAR FOTÓGRAFO -->
+                    <div class="glass admin-section-card" style="flex: 1.1; min-width: 310px;">
+                        <h3 style="color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph ph-user-plus" style="color: var(--accent);"></i> Añadir Fotógrafo
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">
+                            Crea una cuenta oficial para un nuevo fotógrafo. Podrá iniciar sesión y gestionar sus clientes.
+                        </p>
+                        <form onsubmit="event.preventDefault(); handleCreatePhotographer();">
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Nombre Completo *</label>
+                                <input type="text" id="p-name" class="glass" required placeholder="Ej: Carlos Mendoza" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Correo Electrónico de Acceso *</label>
+                                <input type="email" id="p-email" class="glass" required placeholder="carlos@claystudio.com" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Contraseña Temporal *</label>
+                                <input type="text" id="p-pass" class="glass" required minlength="6" placeholder="Mínimo 6 caracteres" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Especialidad / Estilo *</label>
+                                <input type="text" id="p-style" class="glass" required placeholder="Ej: Retratos, Editorial, Bodas" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Biografía / Descripción *</label>
+                                <textarea id="p-desc" class="glass" required placeholder="Experiencia, técnica y enfoque artístico..." style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); min-height: 70px; font-size: 0.9rem;"></textarea>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Foto de Perfil (Opcional)</label>
+                                <input type="file" id="p-avatar" class="glass" accept="image/*" style="width: 100%; padding: 8px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); font-size: 0.85rem;">
+                            </div>
+
+                            <div style="margin-bottom: 22px;">
+                                <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Muestras de Portafolio (Fotos/Videos opcionales)</label>
+                                <input type="file" id="p-portfolio" class="glass" accept="image/*,video/mp4,video/quicktime,video/webm" multiple style="width: 100%; padding: 8px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); font-size: 0.85rem;">
+                            </div>
+
+                            <button type="submit" id="btn-create" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px;">
+                                <i class="ph ph-user-plus"></i> Registrar en la Plataforma
+                            </button>
+                        </form>
+                        <p style="margin-top: 15px; font-size: 0.9rem; color: #10b981; display: none;" id="success-msg">
+                            <i class="ph ph-check-circle"></i> ¡Fotógrafo registrado exitosamente!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-SECCIÓN B: AGENDA GLOBAL DE CITAS -->
+            <div id="team-sub-agenda" style="display: none;">
+                <div class="glass admin-section-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <h2 style="color: var(--accent); font-size: 1.4rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-calendar-check"></i> Agenda Global de Reservas & Citas
+                            </h2>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                                Administra todas las solicitudes de sesiones de los clientes. Puedes aceptar, rechazar, reasignar o cancelar cualquier cita.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="booking-status-filters">
+                            <button type="button" class="btn btn-outline active" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminBookings('Todos')">Todas</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminBookings('Pendiente')">Pendientes</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminBookings('Aceptada')">Aceptadas</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminBookings('Rechazada')">Rechazadas</button>
+                        </div>
+                    </div>
+
+                    <div id="admin-bookings-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <p style="color: var(--text-secondary);"><i class="ph ph-spinner ph-spin"></i> Cargando agenda global...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-SECCIÓN C: GESTIÓN DE GALERÍAS Y SUBIDA DE MATERIAL (ROL FOTÓGRAFO) -->
+            <div id="team-sub-galleries" style="display: none;">
+                <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    
+                    <!-- SUBIDA DE FOTOS A CLIENTE (ACCIÓN CLAVE DEL FOTÓGRAFO) -->
+                    <div class="glass admin-section-card" style="flex: 1; min-width: 320px;">
+                        <h2 style="color: var(--accent); font-size: 1.4rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-cloud-arrow-up"></i> Subir Material a Galería de Cliente
+                        </h2>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 25px;">
+                            Sube las fotos y videos de la sesión para que el cliente pueda visualizarlas en su panel, seleccionar favoritos y solicitar la entrega final.
+                        </p>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Nombre Completo del Cliente *</label>
+                            <input type="text" id="admin-upload-client" class="glass" required placeholder="Ej: María Pérez" style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" list="known-clients-datalist">
+                            <datalist id="known-clients-datalist"></datalist>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Seleccionar Archivos (Fotos PNG/JPG o Videos MP4) *</label>
+                            <input type="file" id="admin-upload-files" class="glass" accept="image/*,video/mp4,video/quicktime,video/webm" multiple style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                        </div>
+
+                        <button type="button" id="btn-admin-upload" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px;" onclick="handleAdminUploadMaterial()">
+                            <i class="ph ph-upload-simple"></i> Subir Archivos a la Galería
+                        </button>
+                        <p id="admin-upload-status" style="margin-top: 15px; font-size: 0.9rem; display: none;"></p>
+                    </div>
+
+                    <!-- LISTADO DE CLIENTES Y CONTROL DE ENTREGAS -->
+                    <div class="glass admin-section-card" style="flex: 1.5; min-width: 340px;">
+                        <h2 style="color: var(--accent); font-size: 1.4rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <i class="ph ph-lock-key-open"></i> Control de Entregas & Galerías
+                        </h2>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                            Libera las fotografías en alta resolución cuando el cliente haya completado el proceso, o exporta la lista de seleccionadas para Lightroom.
+                        </p>
+
+                        <div id="galleries-list" style="display: flex; flex-direction: column; gap: 15px;">
+                            <p style="color: var(--text-secondary);"><i class="ph ph-spinner ph-spin"></i> Cargando galerías...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 2: PORTAFOLIO DE DISEÑO GRÁFICO   -->
+        <!-- ========================================== -->
+        <div id="tab-content-designs" style="display: none;">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                
+                <!-- FORMULARIO SUBIR PROYECTO DE DISEÑO -->
+                <div class="glass admin-section-card" style="flex: 1; min-width: 320px;">
+                    <h2 style="color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-size: 1.4rem;">
+                        <i class="ph ph-upload-simple"></i> Publicar en Portafolio
+                    </h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 25px;">
+                        Como diseñador, publica piezas gráficas de alta calidad para mostrarlas a los visitantes y clientes en la web.
+                    </p>
+
+                    <form id="form-create-design" onsubmit="event.preventDefault(); handleCreateDesign();">
+                        <div style="margin-bottom: 18px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Título del Proyecto</label>
+                            <input type="text" id="design-title" class="glass" placeholder="Ej: Identidad Visual Lumina Café (Se auto-completa si está vacío)" style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Categoría *</label>
+                            <select id="design-category" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                                <option value="Branding" style="background:#14141e; color:white;">Branding / Logotipos</option>
+                                <option value="Redes Sociales" style="background:#14141e; color:white;">Redes Sociales & Contenido</option>
+                                <option value="Packaging" style="background:#14141e; color:white;">Packaging / Empaques</option>
+                                <option value="Publicidad" style="background:#14141e; color:white;">Publicidad & Afiches</option>
+                                <option value="Editorial" style="background:#14141e; color:white;">Editorial & Revistas</option>
+                                <option value="Ilustración" style="background:#14141e; color:white;">Ilustración & Vectorial</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Cliente / Empresa</label>
+                            <input type="text" id="design-client" class="glass" placeholder="Ej: Lumina Roastery (Opcional)" style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Descripción Detallada</label>
+                            <textarea id="design-desc" class="glass" placeholder="Concepto, objetivos visuales y piezas creadas..." style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); min-height: 80px;"></textarea>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Imagen del Proyecto (PNG, JPG, WebP) *</label>
+                            <input type="file" id="design-image" class="glass" accept="image/*" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" onchange="previewDesignImage(event)">
+                            
+                            <div style="text-align: center; margin: 10px 0; color: var(--text-secondary); font-size: 0.85rem;">— o pegar URL directa de imagen —</div>
+                            <input type="url" id="design-url" class="glass" placeholder="https://images.unsplash.com/... o enlace web" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); font-size: 0.85rem;" oninput="previewDesignUrl(event)">
+
+                            <div id="design-preview-container" style="margin-top: 12px; display: none; text-align: center;">
+                                <img id="design-preview-img" style="max-height: 180px; max-width: 100%; border-radius: 10px; border: 1px solid var(--accent); object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-create-design" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px;" onclick="handleCreateDesign()">
+                            <i class="ph ph-upload-simple"></i> Publicar en Portafolio
+                        </button>
+                    </form>
+                    <p style="margin-top: 15px; font-size: 0.9rem; color: #10b981; display: none;" id="design-success-msg">
+                        <i class="ph ph-check-circle"></i> ¡Diseño publicado exitosamente en el portafolio!
+                    </p>
+                </div>
+
+                <!-- LISTA DE DISEÑOS EN EL PORTAFOLIO -->
+                <div class="glass admin-section-card" style="flex: 2; min-width: 340px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="color: var(--accent); font-size: 1.4rem;">
+                            <i class="ph ph-paint-brush"></i> Diseños Publicados (<span id="admin-designs-count">0</span>)
+                        </h2>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="admin-category-filters">
+                            <button type="button" class="btn btn-outline active" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminDesigns('Todos')">Todos</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminDesigns('Branding')">Branding</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminDesigns('Redes Sociales')">Redes</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminDesigns('Packaging')">Packaging</button>
+                            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; border-radius: 15px;" onclick="renderAdminDesigns('Publicidad')">Publicidad</button>
+                        </div>
+                    </div>
+
+                    <div id="admin-designs-list" style="display: flex; flex-direction: column; gap: 15px;">
+                        <p style="color: var(--text-secondary);"><i class="ph ph-spinner ph-spin"></i> Cargando portafolio...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 3: PERSONALIZACIÓN WEB / PORTADA  -->
+        <!-- ========================================== -->
+        <div id="tab-content-website" style="display: none;">
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                
+                <!-- AGREGAR FOTO A LA PORTADA -->
+                <div class="glass admin-section-card" style="flex: 1; min-width: 320px;">
+                    <h2 style="color: var(--accent); font-size: 1.4rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <i class="ph ph-image-square"></i> Añadir Foto a la Portada
+                    </h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 25px;">
+                        Personaliza la galería destacada que ven todos los visitantes al entrar a la página principal de CLAY.
+                    </p>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">Subir Archivo de Imagen (PNG, JPG, WebP)</label>
+                        <input type="file" id="homepage-photo-file" class="glass" accept="image/*" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                    </div>
+
+                    <div style="text-align: center; margin: 15px 0; color: var(--text-secondary); font-size: 0.85rem;">— O ingresar URL directa —</div>
+
+                    <div style="margin-bottom: 25px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.9rem;">URL de Imagen (Unsplash, Firebase, etc.)</label>
+                        <input type="url" id="homepage-photo-url" class="glass" placeholder="https://images.unsplash.com/..." style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                    </div>
+
+                    <button type="button" id="btn-add-homepage-photo" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px;" onclick="handleAdminAddHomepageImage()">
+                        <i class="ph ph-plus-circle"></i> Agregar a la Portada
+                    </button>
+                    <p id="homepage-photo-status" style="margin-top: 15px; font-size: 0.9rem; display: none;"></p>
+                </div>
+
+                <!-- GALERÍA ACTUAL DE LA PORTADA -->
+                <div class="glass admin-section-card" style="flex: 2; min-width: 340px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 style="color: var(--accent); font-size: 1.4rem; display: flex; align-items: center; gap: 10px;">
+                                <i class="ph ph-film-strip"></i> Galería Destacada Actual
+                            </h2>
+                            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 3px;">
+                                Estas fotos se muestran en la sección principal de <a href="index.html" target="_blank" style="color: var(--accent); text-decoration: underline;">index.html</a>.
+                            </p>
+                        </div>
+                        <button class="btn btn-outline" style="font-size: 0.85rem; padding: 6px 12px;" onclick="resetHomepageImages()">
+                            <i class="ph ph-arrow-counter-clockwise"></i> Restablecer por defecto
+                        </button>
+                    </div>
+
+                    <div id="homepage-gallery-grid" class="grid-responsive">
+                        <p style="color: var(--text-secondary);"><i class="ph ph-spinner ph-spin"></i> Cargando fotos de portada...</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODALES DE EDICIÓN INTERACTIVOS           -->
+    <!-- ========================================== -->
+
+    <!-- MODAL 1: EDITAR FOTÓGRAFO -->
+    <div id="modal-edit-photographer" class="admin-modal">
+        <div class="admin-modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: var(--accent); font-size: 1.3rem;"><i class="ph ph-pencil-simple"></i> Editar Perfil de Fotógrafo</h3>
+                <button type="button" class="btn btn-outline" style="padding: 4px 10px; border-radius: 50%;" onclick="closeAdminModal('modal-edit-photographer')"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="event.preventDefault(); savePhotographerEdits();">
+                <input type="hidden" id="edit-p-uid">
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Nombre Completo</label>
+                    <input type="text" id="edit-p-name" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Especialidad / Estilo</label>
+                    <input type="text" id="edit-p-style" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Biografía / Descripción</label>
+                    <textarea id="edit-p-desc" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover); min-height: 80px;"></textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Cambiar Foto de Perfil (Opcional)</label>
+                    <input type="file" id="edit-p-avatar" class="glass" accept="image/*" style="width: 100%; padding: 8px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="closeAdminModal('modal-edit-photographer')">Cancelar</button>
+                    <button type="submit" id="btn-save-photographer" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EDITAR PROYECTO DE DISEÑO -->
+    <div id="modal-edit-design" class="admin-modal">
+        <div class="admin-modal-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: var(--accent); font-size: 1.3rem;"><i class="ph ph-paint-brush"></i> Editar Proyecto de Diseño Gráfico</h3>
+                <button type="button" class="btn btn-outline" style="padding: 4px 10px; border-radius: 50%;" onclick="closeAdminModal('modal-edit-design')"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveDesignEdits();">
+                <input type="hidden" id="edit-design-id">
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Título del Proyecto *</label>
+                    <input type="text" id="edit-design-title" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Categoría *</label>
+                    <select id="edit-design-category" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                        <option value="Branding" style="background:#14141e; color:white;">Branding / Logotipos</option>
+                        <option value="Redes Sociales" style="background:#14141e; color:white;">Redes Sociales & Contenido</option>
+                        <option value="Packaging" style="background:#14141e; color:white;">Packaging / Empaques</option>
+                        <option value="Publicidad" style="background:#14141e; color:white;">Publicidad & Afiches</option>
+                        <option value="Editorial" style="background:#14141e; color:white;">Editorial & Revistas</option>
+                        <option value="Ilustración" style="background:#14141e; color:white;">Ilustración & Vectorial</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Cliente / Empresa</label>
+                    <input type="text" id="edit-design-client" class="glass" style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Descripción Detallada *</label>
+                    <textarea id="edit-design-desc" class="glass" required style="width: 100%; padding: 10px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover); min-height: 90px;"></textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Reemplazar Imagen (Opcional)</label>
+                    <input type="file" id="edit-design-file" class="glass" accept="image/*" style="width: 100%; padding: 8px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="closeAdminModal('modal-edit-design')">Cancelar</button>
+                    <button type="submit" id="btn-save-design" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: REASIGNAR FOTÓGRAFO EN RESERVA -->
+    <div id="modal-reassign-booking" class="admin-modal">
+        <div class="admin-modal-dialog" style="max-width: 480px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: var(--accent); font-size: 1.3rem;"><i class="ph ph-arrows-left-right"></i> Reasignar Fotógrafo</h3>
+                <button type="button" class="btn btn-outline" style="padding: 4px 10px; border-radius: 50%;" onclick="closeAdminModal('modal-reassign-booking')"><i class="ph ph-x"></i></button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveReassignBooking();">
+                <input type="hidden" id="reassign-booking-id">
+                <p id="reassign-booking-info" style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.95rem;"></p>
+                <div style="margin-bottom: 25px;">
+                    <label style="color: var(--text-secondary); margin-bottom: 6px; display: block; font-size: 0.85rem;">Seleccionar Nuevo Fotógrafo Responsable:</label>
+                    <select id="reassign-photographer-select" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                        <!-- Opciones rellenadas por JS -->
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="closeAdminModal('modal-reassign-booking')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Confirmar Reasignación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: GESTIONAR FOTOS SUBIDAS DE UN CLIENTE -->
+    <div id="modal-manage-client-photos" class="admin-modal">
+        <div class="admin-modal-dialog" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--accent); font-size: 1.3rem;" id="manage-photos-title">
+                    <i class="ph ph-images"></i> Galería de Cliente
+                </h3>
+                <button type="button" class="btn btn-outline" style="padding: 4px 10px; border-radius: 50%;" onclick="closeAdminModal('modal-manage-client-photos')"><i class="ph ph-x"></i></button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">
+                Visualiza las fotos cargadas para este cliente. Puedes eliminar fotos individuales si fueron subidas por error.
+            </p>
+            <div id="manage-photos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-height: 450px; overflow-y: auto; padding: 5px;">
+                <!-- Rellenado por JS -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn btn-outline" onclick="closeAdminModal('modal-manage-client-photos')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: CONSTRUCTOR VISUAL DE PORTAFOLIOS (DISEÑO LIBRE POR BLOQUES) -->
+    <div id="modal-portfolio-builder" class="admin-modal">
+        <div class="admin-modal-dialog" style="max-width: 980px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                <div>
+                    <h3 style="color: var(--accent); font-size: 1.4rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-layout"></i> Diseñador Visual de Portafolio
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                        Organiza libremente encabezados, títulos de sección, textos narrativos e imágenes donde mejor te plazca para <strong id="builder-target-name" style="color: var(--text-primary);"></strong>.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; border-radius: 50%;" onclick="closeAdminModal('modal-portfolio-builder')"><i class="ph ph-x"></i></button>
+            </div>
+
+            <!-- BARRA DE HERRAMIENTAS PARA AGREGAR BLOQUES -->
+            <div class="builder-toolbar">
+                <span style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; margin-right: 5px;">
+                    <i class="ph ph-plus-circle" style="color: var(--accent); margin-right: 4px;"></i> Agregar Bloque:
+                </span>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('header')">
+                    <i class="ph ph-text-h"></i> Encabezado / Título
+                </button>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('banner')">
+                    <i class="ph ph-image"></i> Panorámica (Full Width)
+                </button>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('two_cols')">
+                    <i class="ph ph-columns"></i> 2 Columnas (Dupla)
+                </button>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('three_cols')">
+                    <i class="ph ph-squares-four"></i> 3 Columnas (Trío)
+                </button>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('text')">
+                    <i class="ph ph-paragraph"></i> Texto / Narrativa
+                </button>
+                <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addBuilderBlock('grid')">
+                    <i class="ph ph-grid-four"></i> Mosaico de Imágenes
+                </button>
+            </div>
+
+            <!-- CONTENEDOR DE BLOQUES ACTIVOS -->
+            <div id="builder-blocks-list" style="max-height: 520px; overflow-y: auto; padding-right: 8px;">
+                <!-- Rellenado por JS -->
+            </div>
+
+            <!-- PIE DE MODAL / BOTONES DE ACCIÓN -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--glass-border); flex-wrap: wrap; gap: 10px;">
+                <button type="button" class="btn btn-outline" style="font-size: 0.85rem;" onclick="importExistingPhotosToBuilder()">
+                    <i class="ph ph-download-simple"></i> Importar fotos existentes del fotógrafo
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeAdminModal('modal-portfolio-builder')">Cancelar</button>
+                    <button type="button" id="btn-save-builder" class="btn btn-primary" onclick="savePortfolioBuilder()">
+                        <i class="ph ph-floppy-disk"></i> Guardar Portafolio Diseñado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=17"></script>
+    
+    <script>
+        let secondaryApp = null;
+        let adminPhotographers = [];
+        let adminBookings = [];
+        let adminDesignsList = [];
+        let adminGalleries = {};
+        let adminFavorites = {};
+        let currentAdminDesignFilter = 'Todos';
+        let currentBookingFilter = 'Todos';
+
+        function getStorageInstance() {
+            if (window.storage) return window.storage;
+            if (typeof firebase !== 'undefined' && firebase.storage) {
+                try { window.storage = firebase.storage(); } catch(e){}
+                return window.storage;
+            }
+            return null;
+        }
+
+        function getDbInstance() {
+            if (window.db) return window.db;
+            if (typeof firebase !== 'undefined' && firebase.firestore) {
+                try { window.db = firebase.firestore(); } catch(e){}
+                return window.db;
+            }
+            return null;
+        }
+
+        async function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.80) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return file;
+            if (file.type === 'image/svg+xml' || file.size < 120 * 1024) return file;
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.onload = () => {
+                        let { width, height } = img;
+                        if (width > maxWidth || height > maxHeight) {
+                            if (width > height) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            } else {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob && blob.size < file.size) {
+                                const optimizedFile = new File([blob], (file.name || 'image').replace(/\.[^/.]+$/, "") + ".webp", {
+                                    type: 'image/webp'
+                                });
+                                resolve(optimizedFile);
+                            } else {
+                                resolve(file);
+                            }
+                        }, 'image/webp', quality);
+                    };
+                    img.onerror = () => resolve(file);
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => resolve(file);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadImageFileSafely(file, folder = 'designs', onProgress = null) {
+            let processedFile = file;
+            try {
+                if (file && file.type && file.type.startsWith('image/')) {
+                    if (onProgress) onProgress('Optimizando imagen...');
+                    processedFile = await compressImageFile(file);
+                }
+            } catch (compErr) {
+                console.warn('Compresión omitida:', compErr);
+                processedFile = file;
+            }
+
+            const st = getStorageInstance();
+            if (st) {
+                try {
+                    const safeName = (processedFile.name || 'image.webp').replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const ref = st.ref(`${folder}/${Date.now()}_${safeName}`);
+                    
+                    const uploadTask = ref.put(processedFile);
+                    
+                    const uploadPromise = new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                                if (onProgress) onProgress(`Subiendo (${progress}%)...`);
+                            },
+                            (error) => reject(error),
+                            async () => {
+                                const url = await ref.getDownloadURL();
+                                resolve(url);
+                            }
+                        );
+                    });
+
+                    // Si la conexión a Storage se demora más de 5 segundos, pasamos automáticamente al guardado directo
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout de subida a Storage (5s)')), 5000)
+                    );
+
+                    return await Promise.race([uploadPromise, timeoutPromise]);
+                } catch (err) {
+                    console.warn(`Storage tardó o no respondió en 5s, guardando rápidamente en Firestore:`, err);
+                }
+            }
+
+            if (onProgress) onProgress('Procesando para publicación inmediata...');
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('No se pudo procesar la imagen localmente.'));
+                reader.readAsDataURL(processedFile);
+            });
+        }
+
+        // Arranque seguro
+        document.addEventListener('DOMContentLoaded', () => {
+            initDB();
+            applyTheme();
+        });
+
+        window.addEventListener('authStateReady', () => {
+            initAdminPanel(getCurrentUser());
+        });
+
+        if (typeof authInitialized !== 'undefined' && authInitialized) {
+            initAdminPanel(getCurrentUser());
+        }
+
+        function initAdminPanel(user) {
+            updateNavbar();
+
+            if (!user) {
+                document.getElementById('welcome-msg').innerHTML = `<span style="color:red">Error: No hay usuario autenticado.</span>`;
+                return;
+            }
+            if (user.role !== 'admin') {
+                document.getElementById('welcome-msg').innerHTML = `<span style="color:red">Acceso denegado. Rol detectado: ${user.role}. (Email: ${user.email})</span>`;
+                return;
+            }
+
+            document.getElementById('welcome-msg').innerHTML = `<i class="ph ph-shield-star"></i> Admin: ${user.name}`;
+
+            // Inicializar App Secundaria de Firebase para registros limpios de personal
+            if (typeof firebase !== 'undefined' && !secondaryApp) {
+                secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+            }
+
+            if (db) {
+                // 1. Escuchar la lista de fotógrafos
+                db.collection('users').where('role', '==', 'photographer')
+                    .onSnapshot(snapshot => {
+                        adminPhotographers = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+                        renderPhotographersList();
+                        updatePhotographersDropdowns();
+                    });
+
+                // 2. Escuchar la agenda global de reservas
+                db.collection('bookings').onSnapshot(snapshot => {
+                    adminBookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderAdminBookings(currentBookingFilter);
+                    updateKnownClientsDatalist();
+                });
+
+                // 3. Escuchar galerías cargadas
+                db.collection('galleries').onSnapshot(snapshot => {
+                    adminGalleries = {};
+                    snapshot.docs.forEach(doc => {
+                        adminGalleries[doc.id] = doc.data().photos || [];
+                    });
+                    renderGalleriesControl();
+                    updateKnownClientsDatalist();
+                });
+
+                // 4. Escuchar clientes con favoritos (galerías y entregas)
+                db.collection('favorites').onSnapshot(snapshot => {
+                    adminFavorites = {};
+                    snapshot.docs.forEach(doc => {
+                        adminFavorites[doc.id] = doc.data();
+                    });
+                    renderGalleriesControl();
+                    updateKnownClientsDatalist();
+                });
+
+                // 5. Escuchar portafolio de diseño gráfico
+                db.collection('graphic_designs').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                    adminDesignsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderAdminDesigns(currentAdminDesignFilter);
+                }, err => {
+                    console.error("Error al escuchar diseños:", err);
+                });
+
+                // 6. Escuchar fotos de la portada
+                db.collection('site_settings').doc('homepage').onSnapshot(doc => {
+                    let photos = (doc.exists && doc.data().galleryImages && doc.data().galleryImages.length > 0) 
+                        ? doc.data().galleryImages 
+                        : [
+                            "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&auto=format&fit=crop",
+                            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop",
+                            "https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?w=800&auto=format&fit=crop"
+                        ];
+                    renderHomepageGallery(photos);
+                });
+            }
+        }
+
+        // ====================================================
+        // GESTIÓN DE TABS Y NAVEGACIÓN
+        // ====================================================
+
+        function switchAdminTab(tabName) {
+            const tabs = ['team', 'designs', 'website'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`btn-tab-${t}`);
+                const sec = document.getElementById(`tab-content-${t}`);
+                const isActive = t === tabName;
+                if (btn) btn.classList.toggle('active', isActive);
+                if (sec) sec.style.display = isActive ? 'block' : 'none';
+            });
+        }
+
+        function switchTeamSubTab(subName) {
+            const subs = ['photographers', 'agenda', 'galleries'];
+            subs.forEach(s => {
+                const btn = document.getElementById(`subbtn-${s}`);
+                const sec = document.getElementById(`team-sub-${s}`);
+                const isActive = s === subName;
+                if (btn) btn.classList.toggle('active', isActive);
+                if (sec) sec.style.display = isActive ? 'block' : 'none';
+            });
+        }
+
+        function openAdminModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('active');
+        }
+
+        function closeAdminModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('active');
+        }
+
+        // ====================================================
+        // 1. FOTÓGRAFOS DEL EQUIPO (ACCIONES DE ADMIN)
+        // ====================================================
+
+        function renderPhotographersList() {
+            const list = document.getElementById('photographers-list');
+            const countEl = document.getElementById('count-photographers');
+            const badgeEl = document.getElementById('badge-photographers-count');
+            
+            if (countEl) countEl.innerText = adminPhotographers.length;
+            if (badgeEl) badgeEl.innerText = `${adminPhotographers.length} registrados`;
+
+            if (!list) return;
+
+            if (adminPhotographers.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No hay fotógrafos registrados aún.</p>';
+                return;
+            }
+
+            list.innerHTML = adminPhotographers.map(p => `
+                <div class="glass" style="display: flex; justify-content: space-between; padding: 16px; border-radius: 12px; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 240px;">
+                        <img src="${p.avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.name) + '&background=random'}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent);">
+                        <div>
+                            <div style="font-weight: 600; font-size: 1.05rem; color: var(--text-primary);">${p.name}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem;"><i class="ph ph-envelope-simple"></i> ${p.email}</div>
+                            <div style="color: var(--accent); font-size: 0.85rem; margin-top: 2px;"><i class="ph ph-sparkle"></i> ${p.style || 'Fotografía Profesional'}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn btn-primary btn-builder-launch" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openPortfolioBuilder('${p.uid}', 'photographer')" title="Diseñar Portafolio con Bloques">
+                            <i class="ph ph-layout"></i> Portafolio
+                        </button>
+                        <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openEditPhotographerModal('${p.uid}')" title="Editar Perfil">
+                            <i class="ph ph-pencil-simple"></i> Editar
+                        </button>
+                        <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem;" onclick="deletePhotographer('${p.uid}', '${(p.name||'').replace(/'/g, "\\'")}')" title="Eliminar Fotógrafo">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleCreatePhotographer() {
+            const n = document.getElementById('p-name').value.trim();
+            const e = document.getElementById('p-email').value.trim();
+            const p = document.getElementById('p-pass').value;
+            const style = document.getElementById('p-style').value.trim();
+            const desc = document.getElementById('p-desc').value.trim();
+            const btn = document.getElementById('btn-create');
+            
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Registrando...';
+            btn.disabled = true;
+            
+            try {
+                const userCredential = await secondaryApp.auth().createUserWithEmailAndPassword(e, p);
+                const newUser = userCredential.user;
+                
+                await newUser.sendEmailVerification().catch(()=>{});
+
+                let avatarUrl = '';
+                const avatarFile = document.getElementById('p-avatar').files[0];
+                if (avatarFile) {
+                    avatarUrl = await uploadImageFileSafely(avatarFile, `avatars`);
+                }
+                
+                let portfolioUrls = [];
+                const portfolioFiles = document.getElementById('p-portfolio').files;
+                if (portfolioFiles && portfolioFiles.length > 0) {
+                    for (let i = 0; i < portfolioFiles.length; i++) {
+                        const file = portfolioFiles[i];
+                        const pUrl = await uploadImageFileSafely(file, `portfolios/${newUser.uid}`);
+                        portfolioUrls.push(pUrl);
+                    }
+                }
+                
+                const dbObj = getDbInstance();
+                await dbObj.collection('users').doc(newUser.uid).set({
+                    name: n,
+                    role: 'photographer',
+                    email: e,
+                    avatarUrl: avatarUrl,
+                    style: style,
+                    description: desc,
+                    portfolio: portfolioUrls,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                await secondaryApp.auth().signOut();
+
+                document.getElementById('success-msg').style.display = 'block';
+                document.getElementById('p-name').value = '';
+                document.getElementById('p-email').value = '';
+                document.getElementById('p-pass').value = '';
+                document.getElementById('p-avatar').value = '';
+                document.getElementById('p-style').value = '';
+                document.getElementById('p-desc').value = '';
+                document.getElementById('p-portfolio').value = '';
+                
+                setTimeout(() => {
+                    document.getElementById('success-msg').style.display = 'none';
+                }, 4000);
+            } catch (error) {
+                console.error(error);
+                alert("Error al registrar fotógrafo: " + error.message);
+            } finally {
+                btn.innerHTML = '<i class="ph ph-user-plus"></i> Registrar en la Plataforma';
+                btn.disabled = false;
+            }
+        }
+
+        function openEditPhotographerModal(uid) {
+            const p = adminPhotographers.find(x => x.uid === uid);
+            if (!p) return;
+            document.getElementById('edit-p-uid').value = uid;
+            document.getElementById('edit-p-name').value = p.name || '';
+            document.getElementById('edit-p-style').value = p.style || '';
+            document.getElementById('edit-p-desc').value = p.description || '';
+            document.getElementById('edit-p-avatar').value = '';
+            openAdminModal('modal-edit-photographer');
+        }
+
+        async function savePhotographerEdits() {
+            const uid = document.getElementById('edit-p-uid').value;
+            const name = document.getElementById('edit-p-name').value.trim();
+            const style = document.getElementById('edit-p-style').value.trim();
+            const desc = document.getElementById('edit-p-desc').value.trim();
+            const avatarFile = document.getElementById('edit-p-avatar').files[0];
+            const btn = document.getElementById('btn-save-photographer');
+
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+            btn.disabled = true;
+
+            try {
+                const updateData = { name, style, description: desc };
+                if (avatarFile) {
+                    updateData.avatarUrl = await uploadImageFileSafely(avatarFile, `avatars`);
+                }
+                const dbObj = getDbInstance();
+                await dbObj.collection('users').doc(uid).update(updateData);
+                closeAdminModal('modal-edit-photographer');
+                alert('Perfil de fotógrafo actualizado con éxito.');
+            } catch (e) {
+                console.error(e);
+                alert('Error al actualizar fotógrafo: ' + e.message);
+            } finally {
+                btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Guardar Cambios';
+                btn.disabled = false;
+            }
+        }
+
+        async function deletePhotographer(uid, name) {
+            if (!confirm(`¿Estás seguro de que deseas dar de baja al fotógrafo "${name}"? Esta acción removerá su acceso.`)) return;
+            try {
+                await db.collection('users').doc(uid).delete();
+                alert(`Fotógrafo "${name}" eliminado correctamente.`);
+            } catch (e) {
+                alert('Error al eliminar: ' + e.message);
+            }
+        }
+
+        // ====================================================
+        // 2. AGENDA GLOBAL DE CITAS Y RESERVAS
+        // ====================================================
+
+        function renderAdminBookings(filter = 'Todos') {
+            currentBookingFilter = filter;
+            const list = document.getElementById('admin-bookings-list');
+            const countEl = document.getElementById('count-bookings');
+            
+            if (countEl) countEl.innerText = adminBookings.length;
+            if (!list) return;
+
+            // Actualizar botones de filtro
+            document.querySelectorAll('#booking-status-filters button').forEach(btn => {
+                const isMatch = (filter === 'Todos' && btn.innerText === 'Todas') || btn.innerText.includes(filter);
+                btn.classList.toggle('active', isMatch);
+            });
+
+            let filtered = adminBookings;
+            if (filter !== 'Todos') {
+                filtered = adminBookings.filter(b => b.status === filter);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 35px 20px; color: var(--text-secondary); border: 1px dashed var(--glass-border); border-radius: 12px;">
+                        <i class="ph ph-calendar-x" style="font-size: 2.2rem; color: var(--accent); margin-bottom: 8px; display: inline-block;"></i>
+                        <p>No hay reservas en esta categoría (${filter}).</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map(b => {
+                const statusColor = b.status === 'Aceptada' ? '#22c55e' : (b.status === 'Rechazada' ? '#ef4444' : '#fbbf24');
+                return `
+                    <div class="glass" style="display: flex; justify-content: space-between; padding: 18px; border-radius: 12px; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <span style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">${b.clientName || 'Cliente'}</span>
+                                <span style="font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--glass-border); color: var(--text-secondary);">${b.service || 'Sesión'}</span>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.88rem;">
+                                <i class="ph ph-calendar"></i> Fecha: <strong>Día ${b.date || 'Sin fecha'} ${b.time ? 'a las ' + b.time : ''}</strong>
+                            </div>
+                            <div style="color: var(--accent); font-size: 0.88rem; margin-top: 3px;">
+                                <i class="ph ph-camera"></i> Fotógrafo asignado: <strong>${b.photographerName || 'Sin asignar'}</strong>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.85rem;">
+                                Estado: <strong style="color: ${statusColor};">${b.status || 'Pendiente'}</strong>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            ${b.status !== 'Aceptada' ? `
+                                <button class="btn btn-primary" style="background: #22c55e; border: none; padding: 6px 12px; font-size: 0.85rem;" onclick="adminSetBookingStatus('${b.id}', 'Aceptada')">
+                                    <i class="ph ph-check"></i> Aceptar
+                                </button>
+                            ` : ''}
+                            ${b.status !== 'Rechazada' ? `
+                                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem;" onclick="adminSetBookingStatus('${b.id}', 'Rechazada')">
+                                    <i class="ph ph-x"></i> Rechazar
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openReassignModal('${b.id}', '${(b.photographerName||'').replace(/'/g, "\\'")}', '${(b.clientName||'').replace(/'/g, "\\'")}')">
+                                <i class="ph ph-arrows-left-right"></i> Reasignar
+                            </button>
+                            <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2); padding: 6px 10px; font-size: 0.85rem;" onclick="adminDeleteBooking('${b.id}')" title="Eliminar Reserva">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function adminSetBookingStatus(id, newStatus) {
+            try {
+                await db.collection('bookings').doc(id).update({ status: newStatus });
+                const b = adminBookings.find(x => x.id === id);
+                if (b && typeof sendEmailNotification === 'function') {
+                    if (newStatus === 'Aceptada') {
+                        sendEmailNotification('booking_accepted', b.clientName, `¡Tu cita para el Día ${b.date} ${b.time ? 'a las ' + b.time : ''} ha sido confirmada por la dirección de CLAY!`);
+                    } else if (newStatus === 'Rechazada') {
+                        sendEmailNotification('booking_accepted', b.clientName, `Lamentablemente la cita para el Día ${b.date} no pudo ser confirmada.`);
+                    }
+                }
+            } catch (e) {
+                alert('Error al actualizar reserva: ' + e.message);
+            }
+        }
+
+        async function adminDeleteBooking(id) {
+            if (!confirm('¿Deseas eliminar permanentemente esta reserva?')) return;
+            try {
+                await db.collection('bookings').doc(id).delete();
+            } catch (e) {
+                alert('Error al eliminar: ' + e.message);
+            }
+        }
+
+        function openReassignModal(id, currentPhotographer, clientName) {
+            document.getElementById('reassign-booking-id').value = id;
+            document.getElementById('reassign-booking-info').innerText = `Reserva de ${clientName} (Fotógrafo actual: ${currentPhotographer})`;
+            
+            const sel = document.getElementById('reassign-photographer-select');
+            sel.innerHTML = adminPhotographers.map(p => `
+                <option value="${p.uid}" data-name="${p.name}" ${p.name === currentPhotographer ? 'selected' : ''}>
+                    ${p.name} - (${p.style || 'Fotógrafo'})
+                </option>
+            `).join('');
+
+            openAdminModal('modal-reassign-booking');
+        }
+
+        async function saveReassignBooking() {
+            const id = document.getElementById('reassign-booking-id').value;
+            const sel = document.getElementById('reassign-photographer-select');
+            const selectedOpt = sel.options[sel.selectedIndex];
+            const pId = sel.value;
+            const pName = selectedOpt ? selectedOpt.getAttribute('data-name') : 'Fotógrafo';
+
+            try {
+                await db.collection('bookings').doc(id).update({
+                    photographerId: pId,
+                    photographerName: pName
+                });
+                closeAdminModal('modal-reassign-booking');
+                alert(`Cita reasignada con éxito a ${pName}.`);
+            } catch (e) {
+                alert('Error al reasignar: ' + e.message);
+            }
+        }
+
+        // ====================================================
+        // 3. SUBIDA DE MATERIAL & CONTROL DE GALERÍAS
+        // ====================================================
+
+        function updateKnownClientsDatalist() {
+            const datalist = document.getElementById('known-clients-datalist');
+            if (!datalist) return;
+            const clientSet = new Set();
+            adminBookings.forEach(b => { if (b.clientName) clientSet.add(b.clientName); });
+            Object.keys(adminGalleries).forEach(c => clientSet.add(c));
+            Object.keys(adminFavorites).forEach(c => clientSet.add(c));
+            datalist.innerHTML = Array.from(clientSet).map(c => `<option value="${c}"></option>`).join('');
+        }
+
+        async function handleAdminUploadMaterial() {
+            const clientName = document.getElementById('admin-upload-client').value.trim();
+            const fileInput = document.getElementById('admin-upload-files');
+            const files = fileInput.files;
+            const statusEl = document.getElementById('admin-upload-status');
+            const btn = document.getElementById('btn-admin-upload');
+
+            if (!clientName) {
+                alert('Por favor escribe o selecciona el nombre del cliente.');
+                return;
+            }
+            if (!files || files.length === 0) {
+                alert('Por favor selecciona al menos un archivo para subir a la galería.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Subiendo a la Nube...';
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--text-secondary)';
+            statusEl.innerText = `Subiendo 0 de ${files.length} archivos...`;
+
+            try {
+                let currentPhotos = [];
+                const dbObj = getDbInstance();
+                const doc = await dbObj.collection('galleries').doc(clientName).get();
+                if (doc.exists) currentPhotos = doc.data().photos || [];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    statusEl.innerText = `Subiendo archivo ${i + 1} de ${files.length}: ${file.name}...`;
+                    const url = await uploadImageFileSafely(file, `galleries/${clientName}`);
+                    currentPhotos.push(url);
+                }
+
+                await dbObj.collection('galleries').doc(clientName).set({ photos: currentPhotos }, { merge: true });
+
+                statusEl.style.color = '#10b981';
+                statusEl.innerText = `¡${files.length} archivo(s) subidos con éxito para ${clientName}!`;
+                fileInput.value = '';
+                
+                if (typeof sendEmailNotification === 'function') {
+                    sendEmailNotification('photos_ready', clientName, `Tus fotos de prueba ya están en CLAY. Ingresa a tu panel para seleccionarlas.`);
+                }
+            } catch (e) {
+                console.error(e);
+                statusEl.style.color = '#ef4444';
+                statusEl.innerText = 'Error al subir: ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-upload-simple"></i> Subir Archivos a la Galería';
+            }
+        }
+
+        function renderGalleriesControl() {
+            const list = document.getElementById('galleries-list');
+            const countEl = document.getElementById('count-galleries');
+            if (!list) return;
+
+            // Unir todos los clientes conocidos que tienen galería o favoritos
+            const allClients = Array.from(new Set([...Object.keys(adminGalleries), ...Object.keys(adminFavorites)]));
+            if (countEl) countEl.innerText = allClients.length;
+
+            if (allClients.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary); padding: 20px; text-align: center;">No hay galerías activas registradas aún.</p>';
+                return;
+            }
+
+            list.innerHTML = allClients.map(clientName => {
+                const photos = adminGalleries[clientName] || [];
+                const favData = adminFavorites[clientName] || {};
+                const isReleased = favData.isReleased || false;
+                const favCount = favData.photos ? favData.photos.length : 0;
+
+                return `
+                    <div class="glass" style="display: flex; justify-content: space-between; padding: 15px; border-radius: 12px; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 1.05rem; color: var(--text-primary);">Cliente: ${clientName}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 3px;">
+                                Total en galería: <strong>${photos.length}</strong> | Favoritas marcadas: <strong>${favCount}</strong>
+                            </div>
+                            <div style="margin-top: 4px; font-size: 0.85rem;">
+                                Estado: ${isReleased ? 
+                                    '<span style="color: #10b981; font-weight: 600;"><i class="ph ph-check-circle"></i> Liberadas (Entrega Completa)</span>' : 
+                                    '<span style="color: #fbbf24; font-weight: 600;"><i class="ph ph-lock-key"></i> Bloqueadas con Watermark</span>'
+                                }
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openManageClientPhotos('${clientName.replace(/'/g, "\\'")}')">
+                                <i class="ph ph-eye"></i> Ver Fotos (${photos.length})
+                            </button>
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="exportClientFavorites('${clientName.replace(/'/g, "\\'")}')" title="Copiar selección para Lightroom">
+                                <i class="ph ph-download-simple"></i> Exportar
+                            </button>
+                            ${isReleased ? `
+                                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem;" onclick="toggleReleaseGallery('${clientName.replace(/'/g, "\\'")}', false)">
+                                    <i class="ph ph-lock-key"></i> Revocar
+                                </button>
+                            ` : `
+                                <button class="btn btn-primary" style="background: #10b981; border: none; padding: 6px 12px; font-size: 0.85rem;" onclick="toggleReleaseGallery('${clientName.replace(/'/g, "\\'")}', true)">
+                                    <i class="ph ph-lock-key-open"></i> Liberar Fotos
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleReleaseGallery(clientName, release) {
+            const actionText = release ? 'entregar las fotos sin marca de agua en alta resolución' : 'bloquear nuevamente con marca de agua';
+            if (!confirm(`¿Deseas ${actionText} para el cliente "${clientName}"?`)) return;
+            try {
+                await db.collection('favorites').doc(clientName).set({ isReleased: release }, { merge: true });
+                alert(`¡Estado de fotos actualizado para ${clientName}!`);
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        function exportClientFavorites(clientName) {
+            const favData = adminFavorites[clientName];
+            const favs = favData && favData.photos ? favData.photos : [];
+            if (favs.length === 0) {
+                alert(`El cliente "${clientName}" aún no ha seleccionado fotografías favoritas.`);
+                return;
+            }
+            const list = favs.map(f => {
+                try {
+                    let parts = decodeURIComponent(f).split('/');
+                    return parts[parts.length - 1].split('?')[0];
+                } catch(e) {
+                    return f.substring(0, 30) + '...';
+                }
+            }).join('\n');
+
+            alert(`Archivos seleccionados por ${clientName} (${favs.length}):\n\n${list}\n\n(Puedes copiar estos nombres para filtrar directamente en Adobe Lightroom)`);
+        }
+
+        function openManageClientPhotos(clientName) {
+            const photos = adminGalleries[clientName] || [];
+            document.getElementById('manage-photos-title').innerHTML = `<i class="ph ph-images"></i> Galería de: ${clientName} (${photos.length} fotos)`;
+            const grid = document.getElementById('manage-photos-grid');
+            
+            if (photos.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary); grid-column: 1 / -1; text-align: center; padding: 30px;">No hay fotos cargadas para este cliente.</p>';
+            } else {
+                grid.innerHTML = photos.map((pUrl, idx) => `
+                    <div style="position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--glass-border); height: 110px;">
+                        <img src="${pUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <button type="button" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.85); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onclick="deleteClientPhoto('${clientName.replace(/'/g, "\\'")}', ${idx})" title="Eliminar Foto">
+                            <i class="ph ph-trash" style="font-size: 0.8rem;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            openAdminModal('modal-manage-client-photos');
+        }
+
+        async function deleteClientPhoto(clientName, index) {
+            if (!confirm('¿Deseas eliminar esta foto de la galería del cliente?')) return;
+            try {
+                let photos = [...(adminGalleries[clientName] || [])];
+                photos.splice(index, 1);
+                await db.collection('galleries').doc(clientName).update({ photos });
+                openManageClientPhotos(clientName); // Re-render modal
+            } catch (e) {
+                alert('Error al eliminar foto: ' + e.message);
+            }
+        }
+
+        // ====================================================
+        // 4. PORTAFOLIO DE DISEÑO GRÁFICO (ROL DISEÑADOR)
+        // ====================================================
+
+        function previewDesignImage(event) {
+            const file = event.target.files[0];
+            const container = document.getElementById('design-preview-container');
+            const img = document.getElementById('design-preview-img');
+            const titleInput = document.getElementById('design-title');
+            if (file) {
+                if (titleInput && !titleInput.value.trim()) {
+                    titleInput.value = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    container.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function previewDesignUrl(event) {
+            const url = event.target.value.trim();
+            const container = document.getElementById('design-preview-container');
+            const img = document.getElementById('design-preview-img');
+            if (url) {
+                img.src = url;
+                container.style.display = 'block';
+            } else if (!document.getElementById('design-image').files[0]) {
+                container.style.display = 'none';
+            }
+        }
+
+        function renderAdminDesigns(filter = 'Todos') {
+            currentAdminDesignFilter = filter;
+            const container = document.getElementById('admin-designs-list');
+            const countEl = document.getElementById('admin-designs-count');
+            if (!container) return;
+
+            if (countEl) countEl.innerText = adminDesignsList.length;
+
+            const filterBtns = document.querySelectorAll('#admin-category-filters button');
+            filterBtns.forEach(btn => {
+                if (btn.innerText.toLowerCase() === filter.toLowerCase() || (filter === 'Todos' && btn.innerText === 'Todos')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            let filtered = adminDesignsList;
+            if (filter !== 'Todos') {
+                filtered = adminDesignsList.filter(d => (d.category || '').toLowerCase() === filter.toLowerCase());
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); border: 1px dashed var(--glass-border); border-radius: 12px;">
+                        <i class="ph ph-paint-brush" style="font-size: 2.5rem; color: var(--accent); margin-bottom: 10px; display: inline-block;"></i>
+                        <p style="font-weight: 500;">No hay proyectos en esta categoría.</p>
+                        <p style="font-size: 0.85rem; margin-top: 5px;">Sube el primer diseño utilizando el formulario de la izquierda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(d => {
+                const dateStr = d.createdAt ? new Date(d.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Reciente';
+                return `
+                    <div class="glass" style="display: flex; gap: 15px; padding: 15px; border-radius: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 15px; align-items: center; flex: 1; min-width: 250px;">
+                            <img src="${d.imageUrl}" alt="${d.title}" loading="lazy" decoding="async" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid var(--glass-border);">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <span style="background: rgba(99, 102, 241, 0.15); color: var(--accent); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;">
+                                        ${d.category || 'Diseño'}
+                                    </span>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</span>
+                                </div>
+                                <h4 style="font-size: 1.05rem; margin-bottom: 3px; color: var(--text-primary);">${d.title}</h4>
+                                <p style="font-size: 0.85rem; color: var(--accent); margin-bottom: 4px;">
+                                    <i class="ph ph-buildings"></i> ${d.client || 'CLAY Studio'}
+                                </p>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; max-width: 480px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    ${d.description || ''}
+                                </p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="${d.imageUrl}" target="_blank" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.85rem;" title="Ver imagen original">
+                                <i class="ph ph-arrow-square-out"></i>
+                            </a>
+                            <button class="btn btn-primary btn-builder-launch" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openPortfolioBuilder('${d.id}', 'design')" title="Diseñar Presentación con Bloques">
+                                <i class="ph ph-layout"></i> Caso / Piezas
+                            </button>
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;" onclick="openEditDesignModal('${d.id}')">
+                                <i class="ph ph-pencil-simple"></i> Editar
+                            </button>
+                            <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 0.85rem;" onclick="deleteDesign('${d.id}', '${(d.title||'').replace(/'/g, "\\'")}')">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function handleCreateDesign() {
+            let title = document.getElementById('design-title').value.trim();
+            const category = document.getElementById('design-category').value;
+            const client = document.getElementById('design-client').value.trim() || 'CLAY Studio';
+            let desc = document.getElementById('design-desc').value.trim();
+            const file = document.getElementById('design-image').files[0];
+            const urlInput = document.getElementById('design-url') ? document.getElementById('design-url').value.trim() : '';
+            const btn = document.getElementById('btn-create-design');
+            const msg = document.getElementById('design-success-msg');
+
+            if (!file && !urlInput) {
+                alert('⚠️ Por favor selecciona una imagen desde tu dispositivo o ingresa un enlace web.');
+                document.getElementById('design-image').focus();
+                return;
+            }
+
+            if (!title) {
+                if (file) {
+                    title = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                } else {
+                    title = `Proyecto de ${category}`;
+                }
+                document.getElementById('design-title').value = title;
+            }
+
+            if (!desc) {
+                desc = `Proyecto de diseño gráfico desarrollado para ${client} en la categoría ${category}.`;
+                document.getElementById('design-desc').value = desc;
+            }
+
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Preparando...';
+            btn.disabled = true;
+
+            try {
+                let imageUrl = urlInput;
+                if (file) {
+                    imageUrl = await uploadImageFileSafely(file, 'designs', (statusTxt) => {
+                        btn.innerHTML = `<i class="ph ph-spinner ph-spin"></i> ${statusTxt}`;
+                    });
+                }
+
+                if (!imageUrl) {
+                    throw new Error('No se pudo procesar la URL de la imagen.');
+                }
+
+                const dbObj = getDbInstance();
+                if (!dbObj) {
+                    throw new Error('No hay conexión con Firestore en este momento.');
+                }
+
+                await dbObj.collection('graphic_designs').add({
+                    title: title,
+                    category: category,
+                    client: client,
+                    description: desc,
+                    imageUrl: imageUrl,
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('design-title').value = '';
+                document.getElementById('design-client').value = '';
+                document.getElementById('design-desc').value = '';
+                document.getElementById('design-image').value = '';
+                if (document.getElementById('design-url')) document.getElementById('design-url').value = '';
+                document.getElementById('design-preview-container').style.display = 'none';
+
+                if (msg) {
+                    msg.style.display = 'block';
+                    setTimeout(() => { msg.style.display = 'none'; }, 4000);
+                }
+
+                alert(`¡Proyecto "${title}" publicado exitosamente en el portafolio!`);
+
+                // Cambiar el filtro a la categoría publicada para visualizarla de inmediato
+                renderAdminDesigns(category);
+            } catch (e) {
+                console.error("Error en handleCreateDesign:", e);
+                alert('Error al publicar el diseño: ' + e.message);
+            } finally {
+                btn.innerHTML = '<i class="ph ph-upload-simple"></i> Publicar en Portafolio';
+                btn.disabled = false;
+            }
+        }
+
+        function openEditDesignModal(id) {
+            const d = adminDesignsList.find(x => x.id === id);
+            if (!d) return;
+            document.getElementById('edit-design-id').value = id;
+            document.getElementById('edit-design-title').value = d.title || '';
+            document.getElementById('edit-design-category').value = d.category || 'Branding';
+            document.getElementById('edit-design-client').value = d.client || '';
+            document.getElementById('edit-design-desc').value = d.description || '';
+            document.getElementById('edit-design-file').value = '';
+            openAdminModal('modal-edit-design');
+        }
+
+        async function saveDesignEdits() {
+            const id = document.getElementById('edit-design-id').value;
+            const title = document.getElementById('edit-design-title').value.trim();
+            const category = document.getElementById('edit-design-category').value;
+            const client = document.getElementById('edit-design-client').value.trim();
+            const desc = document.getElementById('edit-design-desc').value.trim();
+            const file = document.getElementById('edit-design-file').files[0];
+            const btn = document.getElementById('btn-save-design');
+
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+            btn.disabled = true;
+
+            try {
+                const updateData = { title, category, client, description: desc };
+                if (file) {
+                    updateData.imageUrl = await uploadImageFileSafely(file, 'designs');
+                }
+                const dbObj = getDbInstance();
+                await dbObj.collection('graphic_designs').doc(id).update(updateData);
+                closeAdminModal('modal-edit-design');
+                alert('Proyecto de diseño actualizado con éxito.');
+            } catch (e) {
+                console.error(e);
+                alert('Error al actualizar diseño: ' + e.message);
+            } finally {
+                btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Guardar Cambios';
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteDesign(designId, designTitle) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar "${designTitle}" del portafolio?`)) return;
+            try {
+                await db.collection('graphic_designs').doc(designId).delete();
+                alert('Proyecto de diseño eliminado con éxito.');
+            } catch (e) {
+                console.error(e);
+                alert('Error al eliminar: ' + e.message);
+            }
+        }
+
+        // ====================================================
+        // 5. PERSONALIZACIÓN DE LA PORTADA WEB (PORTADA & GALERÍA)
+        // ====================================================
+
+        let currentHomepagePhotos = [];
+
+        function renderHomepageGallery(photos) {
+            currentHomepagePhotos = photos || [];
+            const grid = document.getElementById('homepage-gallery-grid');
+            if (!grid) return;
+
+            if (currentHomepagePhotos.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary); grid-column: 1 / -1;">No hay imágenes configuradas.</p>';
+                return;
+            }
+
+            grid.innerHTML = currentHomepagePhotos.map((url, i) => `
+                <div class="glass" style="border-radius: 12px; overflow: hidden; position: relative; height: 190px;">
+                    <img src="${url}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: absolute; bottom: 0; inset-inline: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.8rem; color: white; font-weight: 500;">Foto #${i + 1}</span>
+                        <button class="btn btn-outline" style="background: rgba(239,68,68,0.8); border: none; color: white; padding: 4px 8px; font-size: 0.75rem;" onclick="deleteHomepagePhoto(${i})" title="Eliminar de la portada">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleAdminAddHomepageImage() {
+            const file = document.getElementById('homepage-photo-file').files[0];
+            const urlInput = document.getElementById('homepage-photo-url').value.trim();
+            const statusEl = document.getElementById('homepage-photo-status');
+            const btn = document.getElementById('btn-add-homepage-photo');
+
+            if (!file && !urlInput) {
+                alert('Por favor selecciona un archivo o escribe una URL válida de imagen.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Procesando...';
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--text-secondary)';
+            statusEl.innerText = 'Cargando imagen a la portada...';
+
+            try {
+                let finalUrl = urlInput;
+                if (file) {
+                    finalUrl = await uploadImageFileSafely(file, 'homepage', (statusTxt) => {
+                        statusEl.innerText = statusTxt;
+                    });
+                }
+
+                if (!finalUrl) {
+                    throw new Error('No se pudo procesar la imagen seleccionada.');
+                }
+
+                const dbObj = getDbInstance();
+                const updatedPhotos = [...currentHomepagePhotos, finalUrl];
+                await dbObj.collection('site_settings').doc('homepage').set({
+                    galleryImages: updatedPhotos,
+                    updatedAt: Date.now()
+                }, { merge: true });
+
+                statusEl.style.color = '#10b981';
+                statusEl.innerText = '¡Imagen agregada con éxito a la portada!';
+                document.getElementById('homepage-photo-file').value = '';
+                document.getElementById('homepage-photo-url').value = '';
+                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+            } catch (e) {
+                statusEl.style.color = '#ef4444';
+                statusEl.innerText = 'Error: ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-plus-circle"></i> Agregar a la Portada';
+            }
+        }
+
+        async function deleteHomepagePhoto(index) {
+            if (!confirm('¿Deseas quitar esta foto de la portada de la web?')) return;
+            try {
+                const updatedPhotos = [...currentHomepagePhotos];
+                updatedPhotos.splice(index, 1);
+                await db.collection('site_settings').doc('homepage').set({
+                    galleryImages: updatedPhotos,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (e) {
+                alert('Error al quitar foto: ' + e.message);
+            }
+        }
+
+        async function resetHomepageImages() {
+            if (!confirm('¿Deseas restablecer la galería de inicio a las fotos originales por defecto?')) return;
+            try {
+                const defaultPhotos = [
+                    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?w=800&auto=format&fit=crop"
+                ];
+                await db.collection('site_settings').doc('homepage').set({
+                    galleryImages: defaultPhotos,
+                    updatedAt: Date.now()
+                }, { merge: true });
+                alert('Fotos de inicio restablecidas.');
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        function updatePhotographersDropdowns() {
+            // Actualizar opciones para modales si están abiertos
+            const sel = document.getElementById('reassign-photographer-select');
+            if (sel && sel.options.length === 0 && adminPhotographers.length > 0) {
+                sel.innerHTML = adminPhotographers.map(p => `
+                    <option value="${p.uid}" data-name="${p.name}">
+                        ${p.name} - (${p.style || 'Fotógrafo'})
+                    </option>
+                `).join('');
+            }
+        }
+
+        // ====================================================
+        // 6. CONSTRUCTOR VISUAL DE PORTAFOLIOS (DISEÑO LIBRE)
+        // ====================================================
+
+        let currentBuilderTargetId = null;
+        let currentBuilderTargetType = 'photographer'; // 'photographer' | 'design'
+        let builderBlocks = [];
+
+        function openPortfolioBuilder(targetId, targetType = 'photographer') {
+            currentBuilderTargetId = targetId;
+            currentBuilderTargetType = targetType;
+            let targetName = 'Portafolio';
+            let existingBlocks = [];
+
+            if (targetType === 'photographer') {
+                const p = adminPhotographers.find(x => x.uid === targetId);
+                if (p) {
+                    targetName = `Fotógrafo: ${p.name}`;
+                    existingBlocks = p.portfolioBlocks || [];
+                    if (existingBlocks.length === 0 && p.portfolio && p.portfolio.length > 0) {
+                        existingBlocks = [
+                            { type: 'header', title: 'Portafolio de ' + p.name, subtitle: p.style || 'Fotografía Profesional', align: 'center' },
+                            { type: 'grid', title: 'Muestras Seleccionadas', images: [...p.portfolio] }
+                        ];
+                    }
+                }
+            } else {
+                const d = adminDesignsList.find(x => x.id === targetId);
+                if (d) {
+                    targetName = `Diseño: ${d.title}`;
+                    existingBlocks = d.portfolioBlocks || [];
+                    if (existingBlocks.length === 0 && d.imageUrl) {
+                        existingBlocks = [
+                            { type: 'header', title: d.title, subtitle: `Cliente: ${d.client || 'CLAY Studio'} • ${d.category || 'Diseño Gráfico'}`, align: 'left' },
+                            { type: 'banner', url: d.imageUrl, caption: 'Pieza Principal' },
+                            { type: 'text', content: d.description || '' }
+                        ];
+                    }
+                }
+            }
+
+            builderBlocks = JSON.parse(JSON.stringify(existingBlocks));
+            document.getElementById('builder-target-name').innerText = targetName;
+            renderBuilderBlocks();
+            openAdminModal('modal-portfolio-builder');
+        }
+
+        function addBuilderBlock(type) {
+            if (type === 'header') {
+                builderBlocks.push({ type: 'header', title: 'Título de la Serie / Sección', subtitle: 'Subtítulo o concepto visual', align: 'center' });
+            } else if (type === 'text') {
+                builderBlocks.push({ type: 'text', content: 'Describe aquí el concepto artístico, la técnica utilizada o la historia de la sesión...' });
+            } else if (type === 'banner') {
+                builderBlocks.push({ type: 'banner', url: '', caption: 'Pie de foto de la toma panorámica' });
+            } else if (type === 'two_cols') {
+                builderBlocks.push({ type: 'two_cols', images: [{ url: '', caption: '' }, { url: '', caption: '' }] });
+            } else if (type === 'three_cols') {
+                builderBlocks.push({ type: 'three_cols', images: [{ url: '', caption: '' }, { url: '', caption: '' }, { url: '', caption: '' }] });
+            } else if (type === 'grid') {
+                builderBlocks.push({ type: 'grid', title: 'Galería de la Serie', images: [] });
+            }
+            renderBuilderBlocks();
+            const el = document.getElementById('builder-blocks-list');
+            if (el) el.scrollTop = el.scrollHeight;
+        }
+
+        function moveBuilderBlock(index, dir) {
+            const targetIdx = index + dir;
+            if (targetIdx < 0 || targetIdx >= builderBlocks.length) return;
+            const temp = builderBlocks[index];
+            builderBlocks[index] = builderBlocks[targetIdx];
+            builderBlocks[targetIdx] = temp;
+            renderBuilderBlocks();
+        }
+
+        function deleteBuilderBlock(index) {
+            if (!confirm('¿Deseas quitar este bloque del portafolio?')) return;
+            builderBlocks.splice(index, 1);
+            renderBuilderBlocks();
+        }
+
+        function importExistingPhotosToBuilder() {
+            if (currentBuilderTargetType !== 'photographer') {
+                alert('La importación de fotos es para perfiles de fotógrafos.');
+                return;
+            }
+            const p = adminPhotographers.find(x => x.uid === currentBuilderTargetId);
+            if (!p || !p.portfolio || p.portfolio.length === 0) {
+                alert('Este fotógrafo no tiene fotos previas en su portafolio.');
+                return;
+            }
+            builderBlocks.push({
+                type: 'header',
+                title: 'Galería de Trabajos Previos',
+                subtitle: 'Fotografías cargadas originalmente',
+                align: 'left'
+            });
+            builderBlocks.push({
+                type: 'grid',
+                title: 'Colección de Archivos',
+                images: [...p.portfolio]
+            });
+            renderBuilderBlocks();
+        }
+
+        async function uploadBuilderBlockImage(event, blockIndex, subIndex = null) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const label = event.target.parentElement.querySelector('.upload-loading-indicator');
+            if (label) label.innerText = 'Cargando imagen...';
+
+            try {
+                const downloadUrl = await uploadImageFileSafely(file, 'portfolios/builder');
+                if (subIndex !== null) {
+                    builderBlocks[blockIndex].images[subIndex].url = downloadUrl;
+                } else {
+                    builderBlocks[blockIndex].url = downloadUrl;
+                }
+                renderBuilderBlocks();
+            } catch (e) {
+                console.error("Error al subir imagen de bloque:", e);
+                alert('Error al subir imagen: ' + e.message);
+            } finally {
+                if (label) label.innerText = '';
+            }
+        }
+
+        async function addImagesToBuilderGrid(event, blockIndex) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            try {
+                if (!builderBlocks[blockIndex].images) builderBlocks[blockIndex].images = [];
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const url = await uploadImageFileSafely(file, 'portfolios/builder');
+                    builderBlocks[blockIndex].images.push(url);
+                }
+                renderBuilderBlocks();
+            } catch(e) {
+                console.error(e);
+                alert('Error al agregar imágenes al mosaico: ' + e.message);
+            }
+        }
+
+        function removeImageFromBuilderGrid(blockIndex, imgIndex) {
+            builderBlocks[blockIndex].images.splice(imgIndex, 1);
+            renderBuilderBlocks();
+        }
+
+        function renderBuilderBlocks() {
+            const container = document.getElementById('builder-blocks-list');
+            if (!container) return;
+
+            if (builderBlocks.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: var(--text-secondary); border: 2px dashed var(--glass-border); border-radius: 14px;">
+                        <i class="ph ph-layout" style="font-size: 3rem; color: var(--accent); margin-bottom: 12px; display: inline-block;"></i>
+                        <h3 style="color: var(--text-primary); margin-bottom: 6px;">Portafolio Vacío</h3>
+                        <p style="font-size: 0.95rem; max-width: 500px; margin: 0 auto 20px auto;">
+                            Usa los botones superiores para agregar encabezados de página, títulos, imágenes panorámicas, duplas o mosaicos como mejor te plazca.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = builderBlocks.map((b, idx) => {
+                const isFirst = idx === 0;
+                const isLast = idx === builderBlocks.length - 1;
+
+                let badgeTitle = 'BLOQUE';
+                let bodyHtml = '';
+
+                if (b.type === 'header') {
+                    badgeTitle = 'ENCABEZADO / TÍTULO DE SECCIÓN';
+                    bodyHtml = `
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="flex: 2; min-width: 250px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Título del Encabezado</label>
+                                <input type="text" class="glass" value="${(b.title || '').replace(/"/g, '&quot;')}" placeholder="Ej: Colección Moda Otoño" style="width: 100%; padding: 8px 12px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].title = this.value">
+                            </div>
+                            <div style="flex: 2; min-width: 250px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Subtítulo (Opcional)</label>
+                                <input type="text" class="glass" value="${(b.subtitle || '').replace(/"/g, '&quot;')}" placeholder="Ej: Fotografía en exteriores con iluminación cálida" style="width: 100%; padding: 8px 12px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].subtitle = this.value">
+                            </div>
+                            <div style="flex: 1; min-width: 130px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Alineación</label>
+                                <select class="glass" style="width: 100%; padding: 8px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" onchange="builderBlocks[${idx}].align = this.value">
+                                    <option value="center" ${b.align === 'center' ? 'selected' : ''}>Centrado</option>
+                                    <option value="left" ${b.align === 'left' ? 'selected' : ''}>Izquierda</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                } else if (b.type === 'text') {
+                    badgeTitle = 'PÁRRAFO DE TEXTO / NARRATIVA';
+                    bodyHtml = `
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Contenido descriptivo</label>
+                            <textarea class="glass" style="width: 100%; padding: 10px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover); min-height: 80px;" placeholder="Escribe detalles de la sesión, técnica o concepto artístico..." oninput="builderBlocks[${idx}].content = this.value">${b.content || ''}</textarea>
+                        </div>
+                    `;
+                } else if (b.type === 'banner') {
+                    badgeTitle = 'IMAGEN PANORÁMICA (FULL WIDTH)';
+                    bodyHtml = `
+                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                            <div style="width: 100px; height: 70px; border-radius: 6px; overflow: hidden; background: #000; border: 1px solid var(--glass-border); flex-shrink: 0;">
+                                ${b.url ? `<img src="${b.url}" style="width:100%; height:100%; object-fit:cover;">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:0.75rem;">Sin imagen</div>'}
+                            </div>
+                            <div style="flex: 2; min-width: 200px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">URL de la Imagen o Subir Archivo</label>
+                                <input type="text" class="glass" value="${(b.url || '').replace(/"/g, '&quot;')}" placeholder="https://..." style="width: 100%; padding: 8px 12px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover); margin-bottom: 6px;" oninput="builderBlocks[${idx}].url = this.value">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="file" accept="image/*" style="font-size: 0.8rem;" onchange="uploadBuilderBlockImage(event, ${idx})">
+                                    <span class="upload-loading-indicator" style="font-size: 0.8rem; color: var(--accent);"></span>
+                                </div>
+                            </div>
+                            <div style="flex: 1.5; min-width: 200px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Pie de Foto / Título Opcional</label>
+                                <input type="text" class="glass" value="${(b.caption || '').replace(/"/g, '&quot;')}" placeholder="Ej: Toma angular al atardecer" style="width: 100%; padding: 8px 12px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].caption = this.value">
+                            </div>
+                        </div>
+                    `;
+                } else if (b.type === 'two_cols') {
+                    badgeTitle = '2 IMÁGENES (DOBLE COLUMNA)';
+                    bodyHtml = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                            ${(b.images || []).map((img, subI) => `
+                                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                        <div style="width: 60px; height: 50px; border-radius: 4px; overflow: hidden; background: #000; flex-shrink: 0;">
+                                            ${img.url ? `<img src="${img.url}" style="width:100%; height:100%; object-fit:cover;">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:0.7rem;">Vacío</div>'}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">Columna #${subI + 1}</span>
+                                            <input type="file" accept="image/*" style="font-size: 0.75rem; width: 100%;" onchange="uploadBuilderBlockImage(event, ${idx}, ${subI})">
+                                        </div>
+                                    </div>
+                                    <input type="text" class="glass" value="${(img.url || '').replace(/"/g, '&quot;')}" placeholder="URL de Imagen #${subI + 1}" style="width: 100%; padding: 6px 10px; border-radius: 6px; color: var(--text-primary); font-size: 0.8rem; border: 1px solid var(--glass-border); background: var(--bg-surface-hover); margin-bottom: 6px;" oninput="builderBlocks[${idx}].images[${subI}].url = this.value">
+                                    <input type="text" class="glass" value="${(img.caption || '').replace(/"/g, '&quot;')}" placeholder="Pie de foto opcional" style="width: 100%; padding: 6px 10px; border-radius: 6px; color: var(--text-primary); font-size: 0.8rem; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].images[${subI}].caption = this.value">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (b.type === 'three_cols') {
+                    badgeTitle = '3 IMÁGENES (TRIPLE COLUMNA)';
+                    bodyHtml = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            ${(b.images || []).map((img, subI) => `
+                                <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                                        <div style="width: 45px; height: 40px; border-radius: 4px; overflow: hidden; background: #000; flex-shrink: 0;">
+                                            ${img.url ? `<img src="${img.url}" style="width:100%; height:100%; object-fit:cover;">` : '<div style="height:100%; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); font-size:0.65rem;">Vacío</div>'}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary);">Foto #${subI + 1}</span>
+                                            <input type="file" accept="image/*" style="font-size: 0.7rem; width: 100%;" onchange="uploadBuilderBlockImage(event, ${idx}, ${subI})">
+                                        </div>
+                                    </div>
+                                    <input type="text" class="glass" value="${(img.url || '').replace(/"/g, '&quot;')}" placeholder="URL foto #${subI + 1}" style="width: 100%; padding: 5px 8px; border-radius: 6px; color: var(--text-primary); font-size: 0.75rem; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].images[${subI}].url = this.value">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if (b.type === 'grid') {
+                    badgeTitle = 'MOSAICO DE IMÁGENES';
+                    const imgs = b.images || [];
+                    bodyHtml = `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                                <input type="text" class="glass" value="${(b.title || '').replace(/"/g, '&quot;')}" placeholder="Título del Mosaico (Ej: Muestras de la serie)" style="flex: 1; min-width: 200px; padding: 6px 12px; border-radius: 6px; color: var(--text-primary); border: 1px solid var(--glass-border); background: var(--bg-surface-hover);" oninput="builderBlocks[${idx}].title = this.value">
+                                <label class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">
+                                    <i class="ph ph-upload"></i> Subir Múltiples Fotos al Mosaico
+                                    <input type="file" accept="image/*" multiple style="display:none;" onchange="addImagesToBuilderGrid(event, ${idx})">
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 8px; overflow-x: auto; padding: 5px 0;">
+                                ${imgs.map((u, imgIdx) => `
+                                    <div style="position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid var(--glass-border); flex-shrink: 0;">
+                                        <img src="${u}" style="width:100%; height:100%; object-fit:cover;">
+                                        <button type="button" style="position: absolute; top: 2px; right: 2px; background: rgba(239,68,68,0.85); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;" onclick="removeImageFromBuilderGrid(${idx}, ${imgIdx})">
+                                            <i class="ph ph-x" style="font-size: 0.7rem;"></i>
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="builder-block-card">
+                        <div class="builder-block-header">
+                            <span class="builder-block-badge">
+                                <i class="ph ph-arrows-down-up"></i> ${idx + 1}. ${badgeTitle}
+                            </span>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 0.8rem;" ${isFirst ? 'disabled' : ''} onclick="moveBuilderBlock(${idx}, -1)" title="Subir">
+                                    <i class="ph ph-arrow-up"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 0.8rem;" ${isLast ? 'disabled' : ''} onclick="moveBuilderBlock(${idx}, 1)" title="Bajar">
+                                    <i class="ph ph-arrow-down"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 3px 8px; font-size: 0.8rem;" onclick="deleteBuilderBlock(${idx})" title="Eliminar Bloque">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>${bodyHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function savePortfolioBuilder() {
+            const btn = document.getElementById('btn-save-builder');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando diseño...';
+
+            try {
+                const dbObj = getDbInstance();
+                if (!dbObj) throw new Error('No se pudo conectar con Firestore.');
+
+                if (currentBuilderTargetType === 'photographer') {
+                    await dbObj.collection('users').doc(currentBuilderTargetId).update({
+                        portfolioBlocks: builderBlocks
+                    });
+                } else {
+                    await dbObj.collection('graphic_designs').doc(currentBuilderTargetId).update({
+                        portfolioBlocks: builderBlocks
+                    });
+                }
+                alert('¡Portafolio guardado con éxito con el nuevo diseño y disposición de imágenes!');
+                closeAdminModal('modal-portfolio-builder');
+            } catch (e) {
+                console.error(e);
+                alert('Error al guardar portafolio: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Guardar Portafolio Diseñado';
+            }
+        }
+
+        // Auto-abrir constructor o asistente si viene parámetro en URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open_builder')) {
+                if (urlParams.get('photographer_id')) {
+                    setTimeout(() => {
+                        openPortfolioBuilder(urlParams.get('photographer_id'), 'photographer');
+                    }, 700);
+                } else if (urlParams.get('design_id')) {
+                    setTimeout(() => {
+                        openPortfolioBuilder(urlParams.get('design_id'), 'design');
+                    }, 700);
+                }
+            } else if (urlParams.get('open_assistant')) {
+                setTimeout(() => {
+                    toggleAdminAssistant();
+                }, 500);
+            }
+        });
+
+        // ==========================================
+        // ASISTENTE INTELIGENTE PARA ADMINISTRADOR
+        // ==========================================
+        let currentTour = null;
+        let currentTourIndex = 0;
+
+        const ADMIN_TOURS = {
+            portfolio: {
+                title: "Constructor Visual de Portafolios",
+                steps: [
+                    {
+                        title: "1. Sección de Fotógrafos",
+                        desc: "Aquí ves la lista de fotógrafos de la agencia. Cada uno tiene su portafolio editable.",
+                        target: "#photographers-list",
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('photographers'); }
+                    },
+                    {
+                        title: "2. Botón 'Portafolio'",
+                        desc: "Al hacer clic en el botón morado '🎨 Portafolio' en cualquier fotógrafo, se abre el constructor editorial.",
+                        target: ".btn-builder-launch, #btn-tab-team",
+                        action: () => {
+                            const firstLaunch = document.querySelector('.btn-builder-launch');
+                            if (firstLaunch) firstLaunch.focus();
+                        }
+                    },
+                    {
+                        title: "3. Bloques Editoriales",
+                        desc: "Puedes añadir Encabezados, Banners Panorámicos, Dúos de 2 Columnas, Trípticos de 3 Columnas y Cuadrículas.",
+                        target: "#modal-portfolio-builder .builder-toolbar",
+                        action: () => {
+                            const firstLaunch = document.querySelector('.btn-builder-launch');
+                            if (firstLaunch) firstLaunch.click();
+                        }
+                    },
+                    {
+                        title: "4. Reordenar y Guardar",
+                        desc: "Usa las flechas (↑ y ↓) para cambiar el orden de las fotos y encabezados como desees, y luego pulsa '💾 Guardar Portafolio Diseñado'.",
+                        target: "#btn-save-builder",
+                        action: () => {}
+                    }
+                ]
+            },
+            homepage: {
+                title: "Portada Web & Galería Principal",
+                steps: [
+                    {
+                        title: "1. Pestaña de Portada Web",
+                        desc: "Esta pestaña controla exactamente qué fotografías y elementos visuales aparecen en la carátula pública de la web.",
+                        target: "#btn-tab-website",
+                        action: () => { switchAdminTab('website'); }
+                    },
+                    {
+                        title: "2. Las 6 Fotos de la Carátula",
+                        desc: "Estas tarjetas muestran las fotos activas en la galería principal. El interruptor 'Activa en carátula' te permite ocultar o mostrar cada una en tiempo real.",
+                        target: "#homepage-gallery-grid",
+                        action: () => { switchAdminTab('website'); }
+                    },
+                    {
+                        title: "3. Agregar Nuevas Fotos",
+                        desc: "Puedes subir fotos desde tu equipo o pegar una URL directa, ponerles título y categoría para que aparezcan en la web.",
+                        target: "#form-add-gallery-img",
+                        action: () => { switchAdminTab('website'); }
+                    }
+                ]
+            },
+            agenda: {
+                title: "Agenda Global y Citas",
+                steps: [
+                    {
+                        title: "1. Agenda de Sesiones",
+                        desc: "Aquí supervisas todas las reservas que hacen los clientes en la web.",
+                        target: "#subbtn-agenda",
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('agenda'); }
+                    },
+                    {
+                        title: "2. Filtros de Estado",
+                        desc: "Filtra por citas Pendientes, Confirmadas o Completadas para un seguimiento ordenado.",
+                        target: "#booking-status-filter",
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('agenda'); }
+                    },
+                    {
+                        title: "3. Confirmar o Modificar",
+                        desc: "Como admin puedes cambiar el estado de cualquier reserva a 'Confirmada' o cancelarla con un solo clic.",
+                        target: "#admin-bookings-list",
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('agenda'); }
+                    }
+                ]
+            },
+            designs: {
+                title: "Portafolio de Diseño Gráfico",
+                steps: [
+                    {
+                        title: "1. Pestaña de Diseño",
+                        desc: "Administra proyectos de Branding, Redes Sociales, Packaging y Editorial.",
+                        target: "#btn-tab-designs",
+                        action: () => { switchAdminTab('designs'); }
+                    },
+                    {
+                        title: "2. Crear Nuevo Proyecto",
+                        desc: "Pulsa este botón para publicar un nuevo trabajo de diseño con su título, descripción y portada.",
+                        target: "button[onclick=\"openModal('modal-add-design')\"]",
+                        action: () => { switchAdminTab('designs'); }
+                    },
+                    {
+                        title: "3. Caso de Estudio / Piezas",
+                        desc: "El botón '📐 Caso / Piezas' te abre el constructor para diagramar el caso de estudio con bocetos, tipografías y entregables.",
+                        target: "#designs-list-container",
+                        action: () => { switchAdminTab('designs'); }
+                    }
+                ]
+            }
+        };
+
+        function toggleAdminAssistant() {
+            const win = document.getElementById('admin-assistant-window');
+            win.classList.toggle('active');
+            if (win.classList.contains('active')) {
+                document.getElementById('assistant-input-query').focus();
+            }
+        }
+
+        function appendAssistantMessage(text, sender = 'bot', actionBtn = null) {
+            const body = document.getElementById('assistant-chat-body');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `assistant-msg ${sender}`;
+            msgDiv.innerHTML = text;
+
+            if (actionBtn) {
+                const btnEl = document.createElement('button');
+                btnEl.className = 'assistant-action-btn';
+                btnEl.innerHTML = actionBtn.label;
+                btnEl.onclick = actionBtn.action;
+                msgDiv.appendChild(document.createElement('br'));
+                msgDiv.appendChild(btnEl);
+            }
+
+            body.appendChild(msgDiv);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function askAssistantPreset(topic) {
+            if (topic === 'portfolio') {
+                appendAssistantMessage('¿Cómo armo un portafolio con bloques y títulos?', 'user');
+                setTimeout(() => {
+                    appendAssistantMessage(`
+                        <strong>🎨 Constructor de Portafolios Editoriales:</strong><br>
+                        Como administrador tienes control visual absoluto para armar páginas con diseño de revista:<br>
+                        1. Ve a la pestaña <b>Fotógrafos</b> o <b>Diseño Gráfico</b>.<br>
+                        2. Pulsa el botón <b>🎨 Portafolio</b> o <b>📐 Caso / Piezas</b>.<br>
+                        3. Agrega bloques: <i>Encabezados</i> (para títulos de sección), <i>Banners Panorámicos</i>, <i>2 Columnas</i> o <i>Cuadrículas</i>.<br>
+                        4. Usa las flechas <b>↑</b> y <b>↓</b> para reordenar las fotos a tu gusto.<br>
+                        5. Pulsa <b>Guardar Layout</b>. Se actualizará de inmediato en la web pública.
+                    `, 'bot', {
+                        label: '🚀 Iniciar Tour Guiado del Portafolio',
+                        action: () => startInteractiveTour('portfolio')
+                    });
+                }, 300);
+            } else if (topic === 'homepage') {
+                appendAssistantMessage('¿Cómo cambio las fotos de la portada de la web?', 'user');
+                setTimeout(() => {
+                    appendAssistantMessage(`
+                        <strong>🌐 Portada Web y Galería General:</strong><br>
+                        La página principal muestra las 6 fotos destacadas de la galería:<br>
+                        1. Ve a la pestaña <b>Portada Web & Galería</b>.<br>
+                        2. Puedes activar o desactivar cualquier foto con el interruptor <i>"Activa en carátula"</i>.<br>
+                        3. Para subir fotos nuevas a la portada, usa el formulario de la derecha con tu archivo o URL.<br>
+                        4. Los cambios se sincronizan en tiempo real en la web pública sin recargar.
+                    `, 'bot', {
+                        label: '🌐 Ir a Portada Web & Galería',
+                        action: () => { switchAdminTab('website'); toggleAdminAssistant(); }
+                    });
+                }, 300);
+            } else if (topic === 'agenda') {
+                appendAssistantMessage('¿Cómo gestiono las citas y reservas?', 'user');
+                setTimeout(() => {
+                    appendAssistantMessage(`
+                        <strong>📅 Agenda Global de Citas:</strong><br>
+                        Aquí supervisas todas las solicitudes de sesiones de los clientes:<br>
+                        1. En <b>Fotografía & Agenda</b>, pulsa la sub-pestaña <b>Agenda Global de Citas</b>.<br>
+                        2. Filtra por estado (Pendiente, Confirmada, Completada, Cancelada).<br>
+                        3. Haz clic en <i>Confirmar Cita</i> o <i>Rechazar</i> para actualizar la reserva.<br>
+                        4. El cliente y el fotógrafo ven la actualización de inmediato en sus respectivos paneles.
+                    `, 'bot', {
+                        label: '📅 Ver Agenda de Citas',
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('agenda'); toggleAdminAssistant(); }
+                    });
+                }, 300);
+            } else if (topic === 'design') {
+                appendAssistantMessage('¿Cómo funciona el módulo de Diseño Gráfico?', 'user');
+                setTimeout(() => {
+                    appendAssistantMessage(`
+                        <strong>📐 Portafolio de Diseño Gráfico:</strong><br>
+                        La agencia cuenta con un catálogo completo para servicios de diseño:<br>
+                        1. Entra a la pestaña <b>Portafolio de Diseño Gráfico</b>.<br>
+                        2. Pulsa <b>+ Nuevo Proyecto de Diseño</b> para crear branding, empaques o redes.<br>
+                        3. Pulsa <b>📐 Caso / Piezas</b> para usar el constructor visual y mostrar el proceso de diseño.<br>
+                        4. Los visitantes en <i>index.html</i> pueden filtrar por categoría y abrir el visor en alta resolución.
+                    `, 'bot', {
+                        label: '📐 Ir a Sección de Diseño',
+                        action: () => { switchAdminTab('designs'); toggleAdminAssistant(); }
+                    });
+                }, 300);
+            } else if (topic === 'tour') {
+                appendAssistantMessage('Quiero un tour interactivo para conocer todo el panel.', 'user');
+                setTimeout(() => {
+                    appendAssistantMessage(`
+                        <strong>Elige qué tour interactivo deseas realizar:</strong><br>
+                        Te guiaré paso a paso con resaltado en pantalla:
+                    `, 'bot');
+                    const chipsDiv = document.createElement('div');
+                    chipsDiv.className = 'assistant-chips';
+                    chipsDiv.innerHTML = `
+                        <span class="assistant-chip" onclick="startInteractiveTour('portfolio')">🎨 Tour Portafolios</span>
+                        <span class="assistant-chip" onclick="startInteractiveTour('homepage')">🌐 Tour Portada</span>
+                        <span class="assistant-chip" onclick="startInteractiveTour('agenda')">📅 Tour Citas</span>
+                        <span class="assistant-chip" onclick="startInteractiveTour('designs')">📐 Tour Diseño</span>
+                    `;
+                    document.getElementById('assistant-chat-body').appendChild(chipsDiv);
+                }, 300);
+            }
+        }
+
+        function sendAssistantMessage() {
+            const input = document.getElementById('assistant-input-query');
+            const q = input.value.trim().toLowerCase();
+            if (!q) return;
+
+            appendAssistantMessage(input.value.trim(), 'user');
+            input.value = '';
+
+            setTimeout(() => {
+                if (q.includes('portafolio') || q.includes('bloque') || q.includes('foto') || q.includes('titulo') || q.includes('columna') || q.includes('diseñar')) {
+                    appendAssistantMessage(`
+                        <strong>🎨 Sobre el Constructor de Portafolios:</strong><br>
+                        Puedes estructurar la página libremente usando bloques modulares:<br>
+                        • <b>Encabezado:</b> Título y bajada explicativa.<br>
+                        • <b>Banner Panorámico:</b> Foto de gran impacto a ancho completo.<br>
+                        • <b>2 y 3 Columnas:</b> Fotos verticales u horizontales alineadas estéticamente.<br>
+                        • <b>Cuadrícula:</b> Colección de fotos con etiquetas.<br>
+                        • <b>Flechas ↑ / ↓:</b> Para cambiar la posición de cualquier elemento.<br>
+                        Al pulsar "Guardar", se sincroniza directo en Firestore.
+                    `, 'bot', {
+                        label: '🚀 Iniciar Tour del Constructor',
+                        action: () => startInteractiveTour('portfolio')
+                    });
+                } else if (q.includes('portada') || q.includes('inicio') || q.includes('home') || q.includes('caratula')) {
+                    appendAssistantMessage(`
+                        <strong>🌐 Portada Web:</strong><br>
+                        En la pestaña <b>Portada Web & Galería</b> puedes seleccionar qué 6 fotos encabezan la web de Clay Studio. También puedes subir nuevas fotos con título y categoría.
+                    `, 'bot', {
+                        label: '🌐 Ir a Portada Web',
+                        action: () => { switchAdminTab('website'); toggleAdminAssistant(); }
+                    });
+                } else if (q.includes('cita') || q.includes('agenda') || q.includes('reserva') || q.includes('fecha')) {
+                    appendAssistantMessage(`
+                        <strong>📅 Citas y Agenda:</strong><br>
+                        En <b>Fotografía & Agenda → Agenda Global</b> puedes ver todas las sesiones solicitadas por los clientes, confirmar reservas y filtrarlas por fotógrafo o estado.
+                    `, 'bot', {
+                        label: '📅 Ir a la Agenda',
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('agenda'); toggleAdminAssistant(); }
+                    });
+                } else if (q.includes('diseño') || q.includes('branding') || q.includes('packaging') || q.includes('redes')) {
+                    appendAssistantMessage(`
+                        <strong>📐 Diseño Gráfico:</strong><br>
+                        Puedes crear y organizar proyectos de diseño por categorías (Identidad Visual, Social Media, etc.) y diagramar casos de estudio interactivos.
+                    `, 'bot', {
+                        label: '📐 Ir a Diseño Gráfico',
+                        action: () => { switchAdminTab('designs'); toggleAdminAssistant(); }
+                    });
+                } else if (q.includes('fotografo') || q.includes('crear') || q.includes('equipo') || q.includes('usuario')) {
+                    appendAssistantMessage(`
+                        <strong>👥 Fotógrafos del Equipo:</strong><br>
+                        En la sección <b>Fotógrafos de la Agencia</b> puedes ver al personal, registrar nuevos fotógrafos mediante el botón <i>+ Registrar Fotógrafo</i>, editar sus datos o eliminar cuentas.
+                    `, 'bot', {
+                        label: '👥 Ver Fotógrafos',
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('photographers'); toggleAdminAssistant(); }
+                    });
+                } else if (q.includes('cliente') || q.includes('galeria') || q.includes('entrega')) {
+                    appendAssistantMessage(`
+                        <strong>📁 Galerías de Clientes:</strong><br>
+                        En la sub-pestaña <b>Galerías & Entregas de Clientes</b> puedes revisar las fotos que cada fotógrafo ha entregado a sus clientes y abrir la vista previa de revisión.
+                    `, 'bot', {
+                        label: '📁 Ver Entregas de Clientes',
+                        action: () => { switchAdminTab('team'); switchTeamSubTab('galleries'); toggleAdminAssistant(); }
+                    });
+                } else if (q.includes('rol') || q.includes('admin') || q.includes('permiso')) {
+                    appendAssistantMessage(`
+                        <strong>🛡️ Roles y Permisos de la Plataforma:</strong><br>
+                        • <b>Admin (Tú):</b> Acceso total a editar la web, portafolios, diseño gráfico, citas de todos los fotógrafos y portada.<br>
+                        • <b>Fotógrafo:</b> Accede únicamente a sus propias citas, clientes y portafolio personal.<br>
+                        • <b>Cliente:</b> Accede a su galería de fotos contratada y al formulario de reserva.
+                    `, 'bot');
+                } else {
+                    appendAssistantMessage(`
+                        Entendido. Para guiarte mejor, puedes probar uno de nuestros tours interactivos o seleccionar un tema rápido:
+                    `, 'bot', {
+                        label: '🚀 Iniciar Tour General',
+                        action: () => startInteractiveTour('portfolio')
+                    });
+                }
+            }, 300);
+        }
+
+        // ==========================================
+        // SISTEMA DE SPOTLIGHT Y TOURS EN VIVO
+        // ==========================================
+        function startInteractiveTour(tourKey) {
+            const tour = ADMIN_TOURS[tourKey];
+            if (!tour) return;
+
+            // Minimizar ventana de asistente durante el tour
+            document.getElementById('admin-assistant-window').classList.remove('active');
+
+            currentTour = tour;
+            currentTourIndex = 0;
+            renderTourStep();
+        }
+
+        function renderTourStep() {
+            if (!currentTour) return;
+            const step = currentTour.steps[currentTourIndex];
+
+            // Ejecutar acción preparatoria del paso
+            if (typeof step.action === 'function') {
+                step.action();
+            }
+
+            // Quitar highlights previos
+            document.querySelectorAll('.tour-spotlight-highlight').forEach(el => el.classList.remove('tour-spotlight-highlight'));
+
+            setTimeout(() => {
+                const targetEl = document.querySelector(step.target);
+                if (targetEl) {
+                    targetEl.classList.add('tour-spotlight-highlight');
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                const modal = document.getElementById('tour-spotlight-modal');
+                modal.style.display = 'block';
+
+                document.getElementById('tour-current-step').innerText = currentTourIndex + 1;
+                document.getElementById('tour-total-steps').innerText = currentTour.steps.length;
+                document.getElementById('tour-step-title').innerText = step.title;
+                document.getElementById('tour-step-desc').innerText = step.desc;
+
+                document.getElementById('tour-prev-btn').disabled = (currentTourIndex === 0);
+                const nextBtn = document.getElementById('tour-next-btn');
+                if (currentTourIndex === currentTour.steps.length - 1) {
+                    nextBtn.innerHTML = '¡Completado! <i class="ph ph-check-circle"></i>';
+                } else {
+                    nextBtn.innerHTML = 'Siguiente <i class="ph ph-arrow-right"></i>';
+                }
+            }, 300);
+        }
+
+        function nextTourStep() {
+            if (!currentTour) return;
+            if (currentTourIndex < currentTour.steps.length - 1) {
+                currentTourIndex++;
+                renderTourStep();
+            } else {
+                endTour();
+                appendAssistantMessage('🎉 ¡Excelente! Has completado el tour. Si tienes otra consulta, aquí estoy para ayudarte.', 'bot');
+                toggleAdminAssistant();
+            }
+        }
+
+        function prevTourStep() {
+            if (!currentTour || currentTourIndex <= 0) return;
+            currentTourIndex--;
+            renderTourStep();
+        }
+
+        function endTour() {
+            document.querySelectorAll('.tour-spotlight-highlight').forEach(el => el.classList.remove('tour-spotlight-highlight'));
+            const modal = document.getElementById('tour-spotlight-modal');
+            if (modal) modal.style.display = 'none';
+            currentTour = null;
+        }
+    </script>
+
+    <!-- ASISTENTE ADMIN FLOTANTE -->
+    <div id="admin-assistant-launcher" onclick="toggleAdminAssistant()" title="Abrir Asistente de Administración">
+        <span class="pulse-dot"></span>
+        <i class="ph ph-robot" style="font-size: 1.3rem;"></i>
+        <span>Asistente Admin</span>
+    </div>
+
+    <!-- VENTANA DEL ASISTENTE INTELIGENTE -->
+    <div id="admin-assistant-window">
+        <div class="assistant-header">
+            <div class="assistant-title-group">
+                <div class="assistant-avatar">
+                    <i class="ph ph-robot"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: white; margin: 0;">Copiloto de Administración</h3>
+                    <p style="font-size: 0.75rem; color: #a5b4fc; margin: 2px 0 0 0;">Guía interactiva para dominar Clay Studio</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="toggleAdminAssistant()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+        </div>
+        <div class="assistant-body" id="assistant-chat-body">
+            <!-- Mensaje de bienvenida inicial -->
+            <div class="assistant-msg bot">
+                <strong>👋 ¡Hola, Administrador!</strong>
+                <p style="margin-top: 5px; font-size: 0.88rem; color: #cbd5e1;">
+                    Soy tu copiloto para ayudarte a usar y personalizar el 100% de la aplicación web. ¿Qué deseas explorar hoy?
+                </p>
+                <div class="assistant-chips">
+                    <span class="assistant-chip" onclick="askAssistantPreset('portfolio')">🎨 Diseñar Portafolios</span>
+                    <span class="assistant-chip" onclick="askAssistantPreset('homepage')">🌐 Portada Web</span>
+                    <span class="assistant-chip" onclick="askAssistantPreset('agenda')">📅 Citas y Agenda</span>
+                    <span class="assistant-chip" onclick="askAssistantPreset('design')">📐 Diseño Gráfico</span>
+                    <span class="assistant-chip" onclick="askAssistantPreset('tour')">🚀 Iniciar Tour Guiado</span>
+                </div>
+            </div>
+        </div>
+        <div class="assistant-footer">
+            <input type="text" id="assistant-input-query" class="assistant-input" placeholder="Pregunta algo (ej: ¿cómo armar bloques?)" onkeypress="if(event.key==='Enter') sendAssistantMessage()">
+            <button type="button" class="assistant-send-btn" onclick="sendAssistantMessage()" title="Enviar">
+                <i class="ph ph-paper-plane-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- TARJETA DEL TOUR SPOTLIGHT INTERACTIVO -->
+    <div id="tour-spotlight-modal" class="tour-guide-card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="background: rgba(99,102,241,0.25); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                    Paso <span id="tour-current-step">1</span> de <span id="tour-total-steps">4</span>
+                </span>
+                <h4 id="tour-step-title" style="margin: 0; font-size: 1.05rem; color: #fff;">Título del paso</h4>
+            </div>
+            <button type="button" onclick="endTour()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem;">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <p id="tour-step-desc" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 18px;">
+            Descripción del paso.
+        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn btn-outline" id="tour-prev-btn" onclick="prevTourStep()" style="font-size: 0.8rem; padding: 6px 12px;">
+                <i class="ph ph-arrow-left"></i> Anterior
+            </button>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline" onclick="endTour()" style="font-size: 0.8rem; padding: 6px 12px; color: #94a3b8;">
+                    Saltar
+                </button>
+                <button type="button" class="btn btn-primary" id="tour-next-btn" onclick="nextTourStep()" style="font-size: 0.8rem; padding: 6px 16px;">
+                    Siguiente <i class="ph ph-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

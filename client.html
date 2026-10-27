@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Cliente - CLAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css?v=17">
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <nav class="navbar glass">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <i class="ph ph-aperture"></i> CLAY
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Inicio</a>
+        </div>
+        <div class="nav-actions">
+            <!-- Rellenado por app.js -->
+        </div>
+    </nav>
+
+    <div id="app-container" style="margin-top: 100px; padding: 20px;">
+        <!-- Hydrated by JS -->
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=17"></script>
+    <script>
+        window.onload = () => {
+            initDB();
+            applyTheme();
+        };
+
+        window.addEventListener('authStateReady', () => {
+            updateNavbar();
+            
+            const user = getCurrentUser();
+            if (!user || (user.role !== 'client' && user.role !== 'admin')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (db) {
+                // Escuchar favoritos y liberación en tiempo real
+                db.collection('favorites').doc(user.name).onSnapshot(doc => {
+                    if(doc.exists) {
+                        localStorage.setItem('lumina_favorites', JSON.stringify(doc.data().photos));
+                        window.isGalleryReleased = doc.data().isReleased || false;
+                    } else {
+                        window.isGalleryReleased = false;
+                    }
+                    if (document.getElementById('app-container').innerHTML.includes('Mis Reservas')) {
+                        navigateTo('client-dashboard');
+                    }
+                });
+
+                // Escuchar reservas en tiempo real
+                db.collection('bookings').where('clientName', '==', user.name)
+                    .onSnapshot(snapshot => {
+                        window.clientBookings = snapshot.docs.map(doc => doc.data());
+                        if (document.getElementById('app-container').innerHTML.includes('Mis Reservas') || document.getElementById('app-container').children.length === 0) {
+                            navigateTo('client-dashboard');
+                        }
+                    });
+
+                // Escuchar fotos de la galería en tiempo real
+                db.collection('galleries').doc(user.name)
+                    .onSnapshot(doc => {
+                        window.clientGallery = doc.exists ? doc.data().photos : [];
+                        if (document.getElementById('app-container').innerHTML.includes('Mis Reservas') || document.getElementById('app-container').children.length === 0) {
+                            navigateTo('client-dashboard');
+                        }
+                    });
+            } else {
+                window.clientBookings = [];
+                window.clientGallery = [];
+                navigateTo('client-dashboard');
+            }
+            
+            // Navegar al dashboard inicial si no estamos viendo a un fotógrafo u otra cosa
+            if (document.getElementById('app-container').children.length === 0) {
+                navigateTo('client-dashboard');
+            }
+        });
+    </script>
+</body>
+</html>

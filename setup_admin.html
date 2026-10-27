@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurar Administrador</title>
+</head>
+<body style="font-family: sans-serif; padding: 40px;">
+    <h2>Configuración de Cuenta Administrador</h2>
+    <p>Haz clic abajo para crear tu cuenta maestra (clay@studio.com).</p>
+    <button onclick="createAdmin()" style="padding: 15px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer;">Crear y Configurar Admin</button>
+    <p id="status"></p>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="app.js?v=13"></script>
+    
+    <script>
+        async function createAdmin() {
+            const pass = prompt("Firebase detectó que ya habías creado la cuenta clay@studio.com anteriormente. Por favor, escribe la contraseña que usaste para registrarla:");
+            if (!pass) return;
+
+            document.getElementById('status').innerText = 'Conectando con la base de datos...';
+            try {
+                // Iniciar sesión con la cuenta existente
+                const userCredential = await firebase.auth().signInWithEmailAndPassword('clay@studio.com', pass);
+                const user = userCredential.user;
+                
+                // Forzar el rol de admin en la base de datos
+                await db.collection('users').doc(user.uid).set({
+                    name: 'CLAY Admin',
+                    role: 'admin',
+                    email: 'clay@studio.com',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                document.getElementById('status').innerText = '¡Reparación exitosa! La cuenta existente ya fue promovida a Administrador. Ve a tu página e inicia sesión con esa contraseña.';
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

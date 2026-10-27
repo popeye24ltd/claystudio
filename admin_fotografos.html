@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLAY - Creador de Fotógrafos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css?v=13">
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <div style="max-width: 500px; margin: 100px auto; padding: 40px;" class="glass fade-in">
+        <h1 style="color: var(--accent); margin-bottom: 10px;"><i class="ph ph-camera-plus"></i> Crear Fotógrafo</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">Esta herramienta es solo para uso interno de la agencia. Crea las cuentas de los fotógrafos aquí.</p>
+        
+        <form onsubmit="event.preventDefault(); handleCreatePhotographer();">
+            <div style="margin-bottom: 20px;">
+                <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Nombre del Fotógrafo</label>
+                <input type="text" id="p-name" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Correo de Acceso</label>
+                <input type="email" id="p-email" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Contraseña Temporal</label>
+                <input type="text" id="p-pass" class="glass" required minlength="6" placeholder="Ej: 123456" style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+            </div>
+
+            <button type="submit" id="btn-create" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;">Registrar en Firebase</button>
+        </form>
+
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #10b981; display: none;" id="success-msg">¡Fotógrafo creado exitosamente!</p>
+        <button class="btn btn-outline" style="width: 100%; margin-top: 15px;" onclick="window.location.href='index.html'">Volver al Inicio</button>
+    </div>
+
+    <!-- Scripts de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=13"></script>
+    
+    <script>
+        async function handleCreatePhotographer() {
+            const n = document.getElementById('p-name').value;
+            const e = document.getElementById('p-email').value;
+            const p = document.getElementById('p-pass').value;
+            const btn = document.getElementById('btn-create');
+            
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Creando...';
+            btn.disabled = true;
+            
+            const success = await registerUser(e, p, n, 'photographer');
+            
+            if (success) {
+                document.getElementById('success-msg').style.display = 'block';
+                document.getElementById('p-name').value = '';
+                document.getElementById('p-email').value = '';
+                document.getElementById('p-pass').value = '';
+                
+                // Hacer logout inmediatamente para no desloguear al admin (o dejar limpio el estado)
+                setTimeout(() => {
+                    if (auth) auth.signOut();
+                }, 1000);
+            }
+            
+            btn.innerHTML = 'Registrar en Firebase';
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>

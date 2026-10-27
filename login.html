@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - CLAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="styles.css?v=17">
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <nav class="navbar glass">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <i class="ph ph-aperture"></i> CLAY
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Inicio</a>
+        </div>
+        <div class="nav-actions">
+            <!-- Rellenado por app.js -->
+        </div>
+    </nav>
+
+    <style>
+        .auth-tabs { display: flex; margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); }
+        .auth-tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s; font-weight: 500; }
+        .auth-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .auth-form { display: none; animation: fadeIn 0.4s; }
+        .auth-form.active { display: block; }
+        .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .role-btn { flex: 1; padding: 10px; text-align: center; border: 1px solid var(--glass-border); border-radius: 8px; cursor: pointer; color: var(--text-secondary); transition: 0.3s; }
+        .role-btn.active { background: rgba(99, 102, 241, 0.1); border-color: var(--accent); color: var(--accent); }
+        .password-wrapper { position: relative; }
+        .password-wrapper input { padding-right: 48px !important; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-password:hover { color: var(--accent); }
+    </style>
+
+    <div class="login-split">
+        <!-- Lado izquierdo: Fotografía -->
+        <div class="login-photo"></div>
+
+        <!-- Lado derecho: Formulario -->
+        <div class="login-form-container">
+            <div class="glass fade-in" style="padding: 40px; width: 100%; max-width: 450px; background: var(--bg-surface);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <i class="ph ph-lock-key" style="font-size: 3rem; color: var(--accent);"></i>
+                </div>
+                
+                <div class="auth-tabs">
+                    <div class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</div>
+                    <div class="auth-tab" onclick="switchAuthTab('register')">Crear Cuenta</div>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="form-login" class="auth-form active" onsubmit="event.preventDefault(); handleLogin();">
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Correo Electrónico</label>
+                        <input type="email" id="login-email" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)" title="Ver contraseña">
+                                <i class="ph ph-eye" id="icon-login-password"></i>
+                            </button>
+                        </div>
+                        <div style="text-align: right; margin-top: 10px;">
+                            <a href="#" onclick="forgotPassword()" style="color: var(--accent); font-size: 0.9rem; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-login" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;">Entrar</button>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="form-register" class="auth-form" onsubmit="event.preventDefault(); handleRegister();">
+                    <input type="hidden" id="register-role" value="client">
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Nombre Completo</label>
+                        <input type="text" id="register-name" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Correo Electrónico</label>
+                        <input type="email" id="register-email" class="glass" required style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <label style="color: var(--text-secondary); margin-bottom: 8px; display: block;">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="register-password" class="glass" required minlength="6" placeholder="Mínimo 6 caracteres" style="width: 100%; padding: 12px; border-radius: 8px; color: var(--text-primary); outline: none; border: 1px solid var(--glass-border); background: var(--bg-surface-hover);">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('register-password', this)" title="Ver contraseña">
+                                <i class="ph ph-eye" id="icon-register-password"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-register" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 8px;">Registrarse</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="app.js?v=17"></script>
+    <script>
+        window.onload = () => {
+            initDB();
+            applyTheme();
+            updateNavbar();
+            
+            // Forzar el cierre de sesión si el usuario entra a la pantalla de login
+            if (window.auth) {
+                auth.signOut();
+                localStorage.removeItem('lumina_user');
+            }
+        };
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'ph ph-eye-slash';
+                btn.title = 'Ocultar contraseña';
+            } else {
+                input.type = 'password';
+                icon.className = 'ph ph-eye';
+                btn.title = 'Ver contraseña';
+            }
+        }
+
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('form-' + tab).classList.add('active');
+        }
+
+        function selectRole(role, btnElement) {
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            document.getElementById('register-role').value = role;
+        }
+
+        async function handleLogin() {
+            const e = document.getElementById('login-email').value;
+            const p = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login');
+            
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Entrando...';
+            btn.disabled = true;
+            
+            try {
+                const success = await loginUser(e, p);
+                if (!success) {
+                    alert("Correo o contraseña incorrectos");
+                    btn.innerHTML = 'Entrar';
+                    btn.disabled = false;
+                } else {
+                    // Login exitoso, esperar a que el perfil se cargue y redirigir
+                    const redirectUser = () => {
+                        const role = getCurrentUser().role;
+                        window.location.href = role === 'admin' ? 'admin.html' : (role === 'photographer' ? 'photographer.html' : 'client.html');
+                    };
+                    
+                    if (getCurrentUser()) {
+                        redirectUser();
+                    } else {
+                        window.addEventListener('authStateReady', redirectUser);
+                    }
+                }
+            } catch(error) {
+                if (error.message === 'not_verified') {
+                    alert("¡Verificación Pendiente!\n\nRevisa tu bandeja de entrada (o carpeta de Spam) y haz clic en el enlace que te enviamos para verificar tu cuenta.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+                btn.innerHTML = 'Entrar';
+                btn.disabled = false;
+            }
+        }
+
+        async function forgotPassword() {
+            const emailInput = document.getElementById('login-email').value.trim();
+            if (!emailInput) {
+                alert("Por favor, escribe tu correo electrónico en el campo superior para enviarte el enlace de recuperación.");
+                document.getElementById('login-email').focus();
+                return;
+            }
+
+            try {
+                await auth.sendPasswordResetEmail(emailInput);
+                alert("¡Enlace enviado!\n\nRevisa tu bandeja de entrada (y la carpeta de Spam) de " + emailInput + " para restaurar tu contraseña.");
+            } catch(error) {
+                if (error.code === 'auth/user-not-found') {
+                    alert("No existe ninguna cuenta registrada con este correo.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+            }
+        }
+
+        async function handleRegister() {
+            const n = document.getElementById('register-name').value;
+            const e = document.getElementById('register-email').value;
+            const p = document.getElementById('register-password').value;
+            const r = document.getElementById('register-role').value;
+            const btn = document.getElementById('btn-register');
+            
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Registrando...';
+            btn.disabled = true;
+            
+            const success = await registerUser(e, p, n, r);
+            if (success) {
+                alert("¡Cuenta Creada Exitosamente!\n\nTe hemos enviado un correo de confirmación a " + e + ". Por favor, verifica tu correo antes de intentar iniciar sesión.");
+                switchAuthTab('login');
+                document.getElementById('form-register').reset();
+            }
+            
+            btn.innerHTML = 'Registrarse';
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
